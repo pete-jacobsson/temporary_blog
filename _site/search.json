@@ -2,7 +2,7 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "temporary_blog",
+    "title": "Temporary Blog",
     "section": "",
     "text": "Post With Code\n\n\n\n\n\n\n\nnews\n\n\ncode\n\n\nanalysis\n\n\n\n\n\n\n\n\n\n\n\nJun 5, 2023\n\n\nHarlow Malloc\n\n\n\n\n\n\n  \n\n\n\n\nWelcome To My Blog\n\n\n\n\n\n\n\nnews\n\n\n\n\n\n\n\n\n\n\n\nJun 2, 2023\n\n\nTristan O’Malley\n\n\n\n\n\n\nNo matching items"
   },
@@ -11,7 +11,7 @@
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "About this blog"
+    "text": "Welcome to my temporary blog. It is temporary, because I know that the format will change a few times before I settle on something I like. It is also called a temporary blog, while I try to figure out its identity and come up with a more meaningful name.\nWhat does the temporary blog cover? As above, of this I am not sure, but the material in the pipeline consists of project journals, covering various pieces of personal data projects, as well as essays on topics related to research design to speculations on how LLMs may shift the balance between humanities and quantitative sciences in the modern world.\nDrop by for regular updates!"
   },
   {
     "objectID": "posts/post-with-code/index.html",
