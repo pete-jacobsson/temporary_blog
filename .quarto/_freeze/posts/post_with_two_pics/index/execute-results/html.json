@@ -1,0 +1,14 @@
+{
+  "hash": "6cd4df566fae4d80c275eb47ee10d0fe",
+  "result": {
+    "markdown": "---\ntitle: \"Test Post #1\"\nauthor: \"Pete\"\ndate: \"2023-06-07\"\ncategories: [potato fish, testing, a category]\nimage: \"random_pciture.jpg\"\n---\n\n\nAnother test post. Here I put in some code:\n\n\n::: {.cell}\n\n```{.r .cell-code}\ntwo <- 1 + 1\n```\n:::\n\n\nDoes new text even show up? As well as some in-line code \n\n![Another Random Picture](another_random_picture.jpg)\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}
