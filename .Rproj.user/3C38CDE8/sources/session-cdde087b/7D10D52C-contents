@@ -15,7 +15,7 @@ format:
     theme: simplex
     css: styles.css
     sansfont: Corbel
-    mainfont: Suruma
+    mainfont: randomcheck
 
 editor: visual
 
