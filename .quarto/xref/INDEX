@@ -16,5 +16,17 @@
   },
   "posts/post_with_two_pics/index.qmd": {
     "index.html": "b9367498"
+  },
+  "test_posts/test_post_1/index.qmd": {
+    "index.html": "799c815a"
+  },
+  "test_posts/post_with_two_pics/index.qmd": {
+    "index.html": "f9d8d600"
+  },
+  "test_posts/post-with-code/index.qmd": {
+    "index.html": "5b6f0ad8"
+  },
+  "test_posts/welcome/index.qmd": {
+    "index.html": "9938dc04"
   }
 }

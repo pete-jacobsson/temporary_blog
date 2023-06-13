@@ -1,0 +1,17 @@
+---
+title: "Test Post #1"
+author: "Pete"
+date: "2023-06-07"
+categories: [potato fish, testing, a category]
+image: "random_pciture.jpg"
+---
+
+Another test post. Here I put in some code:
+
+```{r}
+two <- 1 + 1
+```
+
+Does new text even show up? As well as some in-line code `r print(1+1)`
+
+![Another Random Picture](another_random_picture.jpg)
