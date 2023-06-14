@@ -4,14 +4,14 @@
     "href": "index.html",
     "title": "Temporary Blog",
     "section": "",
-    "text": "How wrong is wrong: to resurrect a long abandonned project\n\n\n\n\n\n\n\n14C Power/Sensitivity\n\n\nResearch Design\n\n\n\n\n\n\n\n\n\n\n\nJun 14, 2023\n\n\nPete\n\n\n\n\n\n\nNo matching items"
+    "text": "To resurrect a project: 14C Power and Sensitivity (week 1)\n\n\n\n\n\n\n\n14C Power/Sensitivity\n\n\nResearch Design\n\n\nProject Log\n\n\n\n\n\n\n\n\n\n\n\nJun 14, 2023\n\n\nPete\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
     "href": "about.html",
     "title": "About",
     "section": "",
-    "text": "Welcome to my temporary blog. It is temporary, because I know that the format will change a few times before I settle on something I like. It is also called a temporary blog, while I try to figure out its identity and come up with a more meaningful name.\nWhat does the temporary blog cover? As above, of this I am not sure, but the material in the pipeline consists of project journals, covering various pieces of personal data projects, as well as essays on topics related to research design to speculations on how LLMs may shift the balance between humanities and quantitative sciences in the modern world.\nDrop by for regular updates!"
+    "text": "Hiya, I’m Pete and welcome to my temporary blog. It is temporary, because I know that the format will change a few times before I settle on something I like. It is also called a temporary blog, while I try to figure out its identity and come up with a more meaningful name.\nWhat does the temporary blog cover? As above, of this I am not sure, but the material in the pipeline consists of project journals, covering various pieces of personal data projects, as well as essays on topics related to research design to speculations on how LLMs may shift the balance between humanities and quantitative sciences in the modern world.\nDrop by for regular updates!"
   },
   {
     "objectID": "posts/post-with-code/index.html",
@@ -82,5 +82,12 @@
     "title": "Welcome To My Blog",
     "section": "",
     "text": "This is the first post in a Quarto blog. Welcome!\n\nSince this post doesn’t specify an explicit image, the first image in the post will be used in the listing page of posts."
+  },
+  {
+    "objectID": "posts/power_sensitivity_entry_1/index.html",
+    "href": "posts/power_sensitivity_entry_1/index.html",
+    "title": "To resurrect a project: 14C Power and Sensitivity (week 1)",
+    "section": "",
+    "text": "Hello everyone and welcome to what is likely first post on my blog. Today, I’ll provide a b it of a background on a project I am about to resurrect and which some of you might find interesting. Since far too long ago I was working on and off on developing a better idea of how to do quantitative research design in radiocarbon dating, in other words, how to stick a probability distribution on an estimate of how precise the results we’ll be before we take any measurements (power analysis) and evaluate whether the end models are as trustworthy as the HPD areas imply (sensitivity analysis).\nThe Readme in the Github project repository should contain all the details in serious academic format. However, for those not familiar with radiocarbon chronological modelling here are the bare bone basics:\n\nRadiocarbon dating is based on estimating how much of the radioactive 14C isotope has decayed from an organic sample. This involves measuring atoms that show at very small rates, with all the associated contamination risks and precision difficulties.\nRadiocarbon levels fluctuated in the past, so measurement need calibrated to get a meaningful date. How do we do this? We use a calibration curve based on 14C measurements of stuff for which we know the age through some other means (dendrochronology is best, but for the older periods other isotopic dating methods, or varve counting are often used).\nIn most serious radiocarbon work we no longer use single dates - rather we take series of measurements and estimate dates of events of interest (e.g. when was this site abandoned) by using Bayesian chronological modelling.\nUnless you’re French speaking, you’re likely doing your Bayesian chronological modelling using OxCal.\nOxCal is great at what it does, but it does not provide functionality to easily simulate a lot of models with slight changes to simulation input parameters. Which is a convoluted way of saying: if you want to do enough simulations to do quantitative research design in OxCal alone, you will spend a lot of time on manual drudgery.\n\nThe project that I’m off to resurrect was about cutting out the manual part - instead of passing new simulations into OxCal and taking notes on how individual results looked, I wrote scripts to generate simulations from tables of inputs, scripts to pass the input models to OxCal via the command line, and scripts to parse the results out of the OxCal output .js files (no, it’s not a typo - OxCal results come in .js). I got as far as having simulated 300k+ different models and setting up a Shiny App to visualize the outcomes when the pandemic fight call-up came along and I no longer had time to work on this. Until now. Over the next few weeks I hope to revisit the project and at least complete the analytics on the simulations produced to date (I have ambitions to package the functions to simulate and read the .js files… but I haven’t opened to code yet).\nSee you next week with (hopefully) some initial results on the sensitivity side!"
   }
 ]
