@@ -28,5 +28,8 @@
   },
   "test_posts/welcome/index.qmd": {
     "index.html": "9938dc04"
+  },
+  "posts/power_sensitivity_entry_1/index.qmd": {
+    "index.html": "97330d41"
   }
 }
