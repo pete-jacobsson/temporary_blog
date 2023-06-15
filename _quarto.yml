@@ -17,5 +17,9 @@ format:
     sansfont: Corbel
     mainfont: Cambria
 
+comments:
+  giscus: 
+    repo: pete-jacobsson/temporary_blog
+
 editor: visual
 
