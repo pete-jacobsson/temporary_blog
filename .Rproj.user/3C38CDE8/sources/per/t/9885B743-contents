@@ -3,15 +3,13 @@ title: "Choosing models for singles: 14C Power and Sensitivity (weeks 2-3)"
 author: "Pete"
 date: "2023-06-30"
 categories: [14C Power/Sensitivity, Research Design, Project Log]
-execute: 
-  output: FALSE
 format: 
   html: 
     code-fold: true
     code-overflow: scroll
 ---
 
-```{r}
+```{r, include = FALSE}
 library(tidyverse)
 ```
 
@@ -39,10 +37,30 @@ Looking through the project archive, this leg included 10,000 simulations from a
 There are a few things that can be said about the main singles data set, but the things that I found relevant had to do specifically with the accuracy of the simulations under different offsets. 
 
 First, as expected for both 95.4% and 68.2% HPD areas we can see that there is some area of grace with regards to systematic offsets - and that measurements with very small offsets can perform better than the calculated HPD area implies. 
-```{r}
+```{r, output = FALSE}
+##Loading the data - use URL to github - better reproducibility and no duplication.
+
 singles_data_url <- "https://raw.githubusercontent.com/pete-jacobsson/14C-power-sensitivity/main/simulation_results/singles_011_results.csv"   ##Thank you to https://lokraj.me/post/download-github-data/ for the tutorial!
 singles_data <- read_csv(url(singles_data_url))
 
+```
+```{r}
+## Do the transforms necessary and plot the figures
+## Want to have the bars in the range from zero to one, for easy compare with HPD areas
 
+singles_data %>%
+  mutate(
+    offset_magnitude = round(offset_magnitude)
+    ) %>%
+  group_by(offset_magnitude) %>%
+  summarize(
+    `68.2% HPD Area` = mean(accuracy_68),
+    `95.4% HPD Area` = mean(accuracy_95) ##Naming to work for figures
+  ) %>%
+  pivot_longer(!offset_magnitude, names_to = "hpd_area", 
+               values_to = "ratio_accurate") %>%
+  ggplot(aes(x = offset_magnitude, y = ratio_accurate)) +
+  geom_bar(stat = 'identity') +
+  facet_wrap(~hpd_area)
 ```
 
