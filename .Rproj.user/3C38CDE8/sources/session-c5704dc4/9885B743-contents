@@ -1,9 +1,19 @@
 ---
 title: "Choosing models for singles: 14C Power and Sensitivity (weeks 2-3)"
 author: "Pete"
-date: "2023-06-29"
+date: "2023-06-30"
 categories: [14C Power/Sensitivity, Research Design, Project Log]
+execute: 
+  output: FALSE
+format: 
+  html: 
+    code-fold: true
+    code-overflow: scroll
 ---
+
+```{r}
+library(tidyverse)
+```
 
 Welcome back everyone! This took a little longer to put together than anticipated. Truth is, as usual with data projects, there was always the nagging little voice arguing that we should follow the data a little longer... so what's up on the project?
 
@@ -22,7 +32,17 @@ For each of three kinds of models, I've run several different kinds of simulatio
 ## Single calibrations: how did they get simulated and how many I've got?
 Before we move forward you might ask, how did the simulated radiocarbon dates get simulated. The procedure is quite simple - you can find it outlined in code in this file [here](https://github.com/pete-jacobsson/14C-power-sensitivity/blob/main/notebook_001_singles_simulate_compare.rmd). In essence, we begin with a know calibration curve, we choose a systematic offset at random. Remember, large part of the project is to check how sensitive we are to such offsets - by the way I set the offset to between -50 and 50 ^14^C year - which is at the limit of difficult to spot lab screw-ups combined with weird atmospheric effects. We then get a vector of measurement errors - the known uncertainty around our simulated measurements. We then choose a point at random one the calibration curve, check the expected ^14^C age, shift it by the offset, and draw a random number from a normal distribution with a standard deviation corresponding to the measurement error. These can then get passed to the calibration program [OxCal](https://c14.arch.ox.ac.uk/oxcal.html#program) via the command line. Once we get the calibrated results we check whether the 68.2% and 95.4% HPD areas estimated by OxCal contain the known target dates.
 
-Looking through the project archive, this leg included 10,000 simulations from across the tree-ring based part of the calibration curve - looking at the period from zero to 12,300 Before Present (cal BP). The first step was to re-acquaint myself with the data. Thankfully there was a Shiny App that I built two years ago for just that purpose...
+Looking through the project archive, this leg included 10,000 simulations from across the tree-ring based part of the calibration curve - looking at the period from zero to 12,300 Before Present (cal BP). The first step was to re-acquaint myself with the data. Thankfully there was a [Shiny App](https://github.com/pete-jacobsson/14C-power-sensitivity/tree/main/sensitivity_shiny) that I built two years ago for just that purpose...
 
 
 ## So what are the interesting things about these simulations?
+There are a few things that can be said about the main singles data set, but the things that I found relevant had to do specifically with the accuracy of the simulations under different offsets. 
+
+First, as expected for both 95.4% and 68.2% HPD areas we can see that there is some area of grace with regards to systematic offsets - and that measurements with very small offsets can perform better than the calculated HPD area implies. 
+```{r}
+singles_data_url <- "https://raw.githubusercontent.com/pete-jacobsson/14C-power-sensitivity/main/simulation_results/singles_011_results.csv"   ##Thank you to https://lokraj.me/post/download-github-data/ for the tutorial!
+singles_data <- read_csv(url(singles_data_url))
+
+
+```
+

@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Pete">
-<meta name="dcterms.date" content="2023-06-29">
+<meta name="dcterms.date" content="2023-06-30">
 
 <title>Temporary Blog - Choosing models for singles: 14C Power and Sensitivity (weeks 2-3)</title>
 <style>
@@ -22,6 +22,69 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1.6em;
   vertical-align: middle;
 }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
 </style>
 
 
@@ -127,7 +190,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">June 29, 2023</p>
+        <p class="date">June 30, 2023</p>
       </div>
     </div>
     
@@ -145,6 +208,12 @@ ul.task-list li input[type="checkbox"] {
 
 
 
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 <p>Welcome back everyone! This took a little longer to put together than anticipated. Truth is, as usual with data projects, there was always the nagging little voice arguing that we should follow the data a little longer… so what’s up on the project?</p>
 <p>The plan for week 2 was to have a look at the old project archive and start figuring out what can be done. As discussed in the previous post, the project itself is all about running thousands of simulated radiocarbon dates and modelling them to then be able to suggest data-driven decisions for actual sampling. Now, the simulations all got done (or so I thought!) before I went off to fight the pandemic two years ago, alongside some tools for data exploration. So I some time over the past couple of weeks digging through those old project folders, choosing a particular set of simulations to focus on and taking things forward from there. I’ll write up the first batch of analytics next week, this week we’ll focus on the actual stuff that was left behind from the academic days.</p>
 <section id="things-left-behind" class="level2">
@@ -155,6 +224,24 @@ ul.task-list li input[type="checkbox"] {
 <li>The second type of model is a Bayesian wiggle-match date - a bunch of radiocarbon measurements where we know how much time elapsed between the samples - most often gets used for tree-rings (you can find the model ran in a spreadsheet <a href="https://chrono.qub.ac.uk/blaauw/">here</a> if you want the details).</li>
 <li>The third type of model were “Sequences” - groups of dates where we have some idea of contemporaneity and ordering of the dates, but no information on their exact chronological relationship. So, for example, we know that bone A got deposited before bone B, but no idea how many years apart. Unlike single calibrations and wiggle-match dates, these kinds of models come with multiplicity of parameters and in general use MCMC. If you want to know more, check out the <a href="https://historicengland.org.uk/images-books/publications/radiocarbon-dating-chronological-modelling/bayesian-chronological-modelling/">intro on the Historic England website</a>.</li>
 </ul>
+<p>For each of three kinds of models, I’ve run several different kinds of simulations. Some focused on particular time periods, others on how results changed with different calibration curves, while other still were concerned with obtaining large mass of simulated measurements over different time periods. Looking through the project archive I found the last category most interesting, and thought I’d start with it. However, before going right to the bit that I wanted to do for two years now - studying the wiggle-match date models, I though I’d begin with single calibrations to brush up on some key tools (and practice new ones).</p>
+</section>
+<section id="single-calibrations-how-did-they-get-simulated-and-how-many-ive-got" class="level2">
+<h2 class="anchored" data-anchor-id="single-calibrations-how-did-they-get-simulated-and-how-many-ive-got">Single calibrations: how did they get simulated and how many I’ve got?</h2>
+<p>Before we move forward you might ask, how did the simulated radiocarbon dates get simulated. The procedure is quite simple - you can find it outlined in code in this file <a href="https://github.com/pete-jacobsson/14C-power-sensitivity/blob/main/notebook_001_singles_simulate_compare.rmd">here</a>. In essence, we begin with a know calibration curve, we choose a systematic offset at random. Remember, large part of the project is to check how sensitive we are to such offsets - by the way I set the offset to between -50 and 50 <sup>14</sup>C year - which is at the limit of difficult to spot lab screw-ups combined with weird atmospheric effects. We then get a vector of measurement errors - the known uncertainty around our simulated measurements. We then choose a point at random one the calibration curve, check the expected <sup>14</sup>C age, shift it by the offset, and draw a random number from a normal distribution with a standard deviation corresponding to the measurement error. These can then get passed to the calibration program <a href="https://c14.arch.ox.ac.uk/oxcal.html#program">OxCal</a> via the command line. Once we get the calibrated results we check whether the 68.2% and 95.4% HPD areas estimated by OxCal contain the known target dates.</p>
+<p>Looking through the project archive, this leg included 10,000 simulations from across the tree-ring based part of the calibration curve - looking at the period from zero to 12,300 Before Present (cal BP). The first step was to re-acquaint myself with the data. Thankfully there was a <a href="https://github.com/pete-jacobsson/14C-power-sensitivity/tree/main/sensitivity_shiny">Shiny App</a> that I built two years ago for just that purpose…</p>
+</section>
+<section id="so-what-are-the-interesting-things-about-these-simulations" class="level2">
+<h2 class="anchored" data-anchor-id="so-what-are-the-interesting-things-about-these-simulations">So what are the interesting things about these simulations?</h2>
+<p>There are a few things that can be said about the main singles data set, but the things that I found relevant had to do specifically with the accuracy of the simulations under different offsets.</p>
+<p>First, as expected for both 95.4% and 68.2% HPD areas we can see that there is some area of grace with regards to systematic offsets - and that measurements with very small offsets can perform better than the calculated HPD area implies.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>singles_data_url <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/pete-jacobsson/14C-power-sensitivity/main/simulation_results/singles_011_results.csv"</span>   <span class="do">##Thank you to https://lokraj.me/post/download-github-data/ for the tutorial!</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>singles_data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="fu">url</span>(singles_data_url))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 
 
 </section>
