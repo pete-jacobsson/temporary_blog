@@ -59,8 +59,27 @@ singles_data %>%
   ) %>%
   pivot_longer(!offset_magnitude, names_to = "hpd_area", 
                values_to = "ratio_accurate") %>%
+  mutate(line_for_nominal = if_else(str_detect(hpd_area, "68"), 0.682, 0.954)) %>%
   ggplot(aes(x = offset_magnitude, y = ratio_accurate)) +
-  geom_bar(stat = 'identity') +
-  facet_wrap(~hpd_area)
+  geom_hline(aes(yintercept = line_for_nominal), linetype = "dashed") +
+  geom_bar(stat = 'identity', color = "steelblue", fill = "steelblue") +
+    facet_wrap(~hpd_area) +
+  theme_bw() +
+  labs(
+    x = "Offset magnitude",
+    y = "Ratio accurate"
+  ) +
+  theme(
+    panel.grid.minor = element_blank(),
+    strip.background = element_rect(
+     color="black", fill="white"
+     ),
+     text = element_text(family = "Corbel")
+    )
 ```
+
+
+
+
+Add the bit on relationship between measurement error and time when it comes to precision
 
