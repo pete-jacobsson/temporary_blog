@@ -78,8 +78,78 @@ singles_data %>%
     )
 ```
 
+```{r}
+singles_data %>%
+  mutate(
+    target_year = plyr::round_any(target_year, 100)
+    ) %>%
+  group_by(target_year) %>%
+  summarize(
+    `68.2% HPD Area` = mean(accuracy_68),
+    `95.4% HPD Area` = mean(accuracy_95) ##Naming to work for figures
+  ) %>%
+  pivot_longer(!target_year, names_to = "hpd_area", 
+               values_to = "ratio_accurate") %>%
+  mutate(line_for_nominal = if_else(str_detect(hpd_area, "68"), 0.682, 0.954)) %>%
+  ggplot(aes(x = target_year, y = ratio_accurate)) +
+  geom_hline(aes(yintercept = line_for_nominal), linetype = "dashed") +
+  geom_bar(stat = 'identity', color = "steelblue", fill = "steelblue") +
+    facet_wrap(~hpd_area) +
+  theme_bw() +
+  labs(
+    x = "Target Year",
+    y = "Ratio accurate"
+  ) +
+  theme(
+    panel.grid.minor = element_blank(),
+    strip.background = element_rect(
+     color="black", fill="white"
+     ),
+     text = element_text(family = "Corbel")
+    )
+```
+
+
+```{r}
+## Do the transforms necessary and plot the figures
+## Want to have the bars in the range from zero to one, for easy compare with HPD areas
+
+singles_data %>%
+  mutate(
+    measurement_error = round(measurement_error)
+    ) %>%
+  group_by(measurement_error) %>%
+  summarize(
+    `68.2% HPD Area` = mean(accuracy_68),
+    `95.4% HPD Area` = mean(accuracy_95) ##Naming to work for figures
+  ) %>%
+  pivot_longer(!measurement_error, names_to = "hpd_area", 
+               values_to = "ratio_accurate") %>%
+  mutate(line_for_nominal = if_else(str_detect(hpd_area, "68"), 0.682, 0.954)) %>%
+  ggplot(aes(x = measurement_error, y = ratio_accurate)) +
+  geom_hline(aes(yintercept = line_for_nominal), linetype = "dashed") +
+  geom_bar(stat = 'identity', color = "steelblue", fill = "steelblue") +
+    facet_wrap(~hpd_area) +
+  theme_bw() +
+  labs(
+    x = "Measurement error",
+    y = "Ratio accurate"
+  ) +
+  theme(
+    panel.grid.minor = element_blank(),
+    strip.background = element_rect(
+     color="black", fill="white"
+     ),
+     text = element_text(family = "Corbel")
+    )
+```
 
 
 
 Add the bit on relationship between measurement error and time when it comes to precision
+
+
+```{r}
+### Heatmap here
+```
 
