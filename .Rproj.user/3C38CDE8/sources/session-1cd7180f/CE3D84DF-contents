@@ -11,5 +11,52 @@ format:
     code-overflow: scroll
 ---
 
+*This may be very confusing for anyone unacquainted with previous installments in the series!*
 
-Hello everyone! Last time we left this project, we were on the verge of doing some exploratory modelling to assess whether 
+Hello everyone! Last time we left this project, we were on the verge of doing some exploratory modelling to start getting a more precise assessment of patterns we spotted during preliminary visualizations. To recap, we are trying to evaluate how much systematic offsets affect the precision of calibrated radiocarbon date ranges through simulating 10k of those models, with known offsets and checking how they vary. So far we spotted that model accuracy changes through time, as well as based on model precision (more accurate ones tend to get the answers wrong more often). We left off with two ways of approaching the exploratory modelling.
+
+-   One approach would treat uncertainty about the mean of the calibration curve as one of the model variables.
+-   The other approach would break up the data set based on target dates of the simulated radiocarbon dates, and build logistic models for each time period.
+
+This installment focuses on the outcomes of the second approach. TLDR: if we want to push this any further, we need a lot more simulations than the 10k we've got.
+
+## The models explored
+
+Before going for our main goal, which is estimating how much offset is dangerous for these kinds of measurements during different time periods, we need to have a good model for describing how difference modelled date ranges relate to different combinations of underpinning factors.
+
+In the current approach, I wanted to build seperate models for different points in time, which left me with two variables to consider: - Magnitude of systematic offset (ranging from -50 to 50 radiocarbon years - which are in reality a unit not of time, but of radiocarbon concentration) - Measurement precision (Between 8 and 32 radiocarbon years - less means more precise).
+
+With these two variables four models were possible: 1. Offset only, ignoring any information from measurement precision 2. Precision only, ignoring offset magnitude 3. Both offset and precision 4. Offset, precision, and their interaction.
+
+While I was confident *a priori* that the second model was wrong (and I think you'll agree with me here), it was unclear how models 3 and 4 would compare, or for that matter whether model 1 might not be better on the grounds of parsimony (yes, measurement precision did seem to matter, but maybe not enough to justify it in model inclusion).
+
+I did spend some time two or three years ago chasing my own tail on that one time and time again. This time I decided to go for a simpler solution: I just applied all four models across the board, retaining the "dubious" model 2, as a baseline of bad model choice.
+
+PLAN
+
+## How the modelling was done
+A short entry on how modelling done - broom and all that jazz - at first used 50 bins across the data set, treating pos and neg offsets seperately
+
+Next, looked at model goodness params
+Then at model params themselves
+
+Then re-did the whole things with larger bins
+
+
+## Model fit quality
+Ups and downs, big bit - 95.4% ranges
+
+
+## Model results discussion
+Base it off the research notes
+
+Twist - we lost the time dimension
+
+
+## Try again: bigger bins
+
+
+## Conclusion
+Not enough power for precision. 
+Important bit - What changes in this characterization might be the baseline (intercept). This makes sense. 
+
