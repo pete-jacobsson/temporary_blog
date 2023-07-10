@@ -592,3 +592,10 @@ single_cals_log_results %>%
 ```
 
 OK, suspicion confirmed. What we see here is that the models without the interaction terms are on the one hand much more precise as far as their estimates go, but on the other hand, the parameter for the measurement error does indeed flip sigm - in the interaction models its mean is negative (implies greater scatter of estimates leads to greater chance of measurement being off target), while in the non-interaction models it is positive - implying that greater measurement uncertainty leads to greater precision. Now, we know that in the case of zero offset from the mean of the calibration curve, a super-precise determination would almost always fit within the uncertainty of the calibration curve - and therefore return more accurate results. As such, due to underpinning maths, the interaction model is a better description of reality even if the interaction term itself is centered around zero and the overall parameter estimate uncertainties are far higher.
+
+
+
+Now, what all this did not give us is reproduction of the trends we've seen in the EDA histograms. What I'd be keen to do is to try again with wider bins. There will be a big ole' copy paste comin' this way, I'm afraid. 
+
+
+

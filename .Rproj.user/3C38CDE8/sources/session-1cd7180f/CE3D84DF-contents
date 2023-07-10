@@ -1,0 +1,15 @@
+---
+title: "Not enough power for sensitivity: 14C Power and Sensitivity (weeks 4-5?)"
+author: "Pete"
+date: "2023-07-05"
+categories: [14C Power/Sensitivity, Research Design, Project Log]
+execute:
+  message: false
+format: 
+  html: 
+    code-fold: true
+    code-overflow: scroll
+---
+
+
+Hello everyone! Last time we left this project, we were on the verge of doing some exploratory modelling to assess whether 
