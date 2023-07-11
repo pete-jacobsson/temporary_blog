@@ -4,7 +4,7 @@
     "href": "index.html",
     "title": "Temporary Blog",
     "section": "",
-    "text": "Choosing models for singles: 14C Power and Sensitivity (weeks 2-3)\n\n\n\n\n\n\n\n14C Power/Sensitivity\n\n\nResearch Design\n\n\nProject Log\n\n\n\n\n\n\n\n\n\n\n\nJul 4, 2023\n\n\nPete\n\n\n\n\n\n\n\n\nTo resurrect a project: 14C Power and Sensitivity (week 1)\n\n\n\n\n\n\n\n14C Power/Sensitivity\n\n\nResearch Design\n\n\nProject Log\n\n\n\n\n\n\n\n\n\n\n\nJun 14, 2023\n\n\nPete\n\n\n\n\n\n\nNo matching items"
+    "text": "Not enough power for sensitivity: 14C Power and Sensitivity (weeks 4-5?)\n\n\n\n\n\n\n\n14C Power/Sensitivity\n\n\nResearch Design\n\n\nProject Log\n\n\n\n\n\n\n\n\n\n\n\nJul 14, 2023\n\n\nPete\n\n\n\n\n\n\n\n\nChoosing models for singles: 14C Power and Sensitivity (weeks 2-3)\n\n\n\n\n\n\n\n14C Power/Sensitivity\n\n\nResearch Design\n\n\nProject Log\n\n\n\n\n\n\n\n\n\n\n\nJul 5, 2023\n\n\nPete\n\n\n\n\n\n\n\n\nTo resurrect a project: 14C Power and Sensitivity (week 1)\n\n\n\n\n\n\n\n14C Power/Sensitivity\n\n\nResearch Design\n\n\nProject Log\n\n\n\n\n\n\n\n\n\n\n\nJun 14, 2023\n\n\nPete\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "about.html",
@@ -124,5 +124,54 @@
     "title": "Choosing models for singles: 14C Power and Sensitivity (weeks 2-3)",
     "section": "Where next?",
     "text": "Where next?\nInitial explorations of the simulation data give us some idea of what to pursue:\n\nWe can have a look at how different offsets affect measurement precision\nWe can explore the temporal dimension\nWe can explore impacts of measurement precision\n\nThe next step, in the next installment will consist of exploring those factors through modelling, with the purpose of bringing us closer to the fundamental question of this leg of the project - how much can the measurements be offset before the results become unreliable? At this stage we know that measurement uncertainty also might need to be taken into account and that something about the calibration curve might have an impact. We also know that the curve is anything but monotonous, with plenty of features attesting to past states of the sun and the Earth’s geomagnetic field and that the precision of the calibration curve becomes less and less the further back we go in time. Hence, our key challenge moving forward will be to figure out just how much those additional variables matter for estimating the range of systematic offsets that radiocarbon determinations can take before the calibrated dates become less accurate than what the HPD area would imply.\nSee you next week! Or two weeks from now, or however this will pan out."
+  },
+  {
+    "objectID": "posts/power_sensitivity_entry_3/index.html",
+    "href": "posts/power_sensitivity_entry_3/index.html",
+    "title": "Not enough power for sensitivity: 14C Power and Sensitivity (weeks 4-5?)",
+    "section": "",
+    "text": "Hello everyone! Last time we left this project, we were on the verge of doing some exploratory modelling to start getting a more precise assessment of patterns we spotted during preliminary visualizations. To recap, we are trying to evaluate how much systematic offsets affect the precision of calibrated radiocarbon date ranges through simulating 10k of those models, with known offsets and checking how they vary. So far we spotted that model accuracy changes through time, as well as based on model precision (more accurate ones tend to get the answers wrong more often). We left off with two ways of approaching the exploratory modelling.\nThis installment focuses on the outcomes of the second approach. TLDR: if we want to push this any further, we need a lot more simulations than the 10k we’ve got."
+  },
+  {
+    "objectID": "posts/power_sensitivity_entry_3/index.html#the-models-explored",
+    "href": "posts/power_sensitivity_entry_3/index.html#the-models-explored",
+    "title": "Not enough power for sensitivity: 14C Power and Sensitivity (weeks 4-5?)",
+    "section": "The models explored",
+    "text": "The models explored\nBefore going for our main goal, which is estimating how much offset is dangerous for these kinds of measurements during different time periods, we need to have a good model for describing how difference modelled date ranges relate to different combinations of underpinning factors.\nIn the current approach, I wanted to build seperate models for different points in time, which left me with two variables to consider: - Magnitude of systematic offset (ranging from -50 to 50 radiocarbon years - which are in reality a unit not of time, but of radiocarbon concentration) - Measurement precision (Between 8 and 32 radiocarbon years - less means more precise).\nWith these two variables four models were possible: 1. Offset only, ignoring any information from measurement precision 2. Precision only, ignoring offset magnitude 3. Both offset and precision 4. Offset, precision, and their interaction.\nWhile I was confident a priori that the second model was wrong (and I think you’ll agree with me here), it was unclear how models 3 and 4 would compare, or for that matter whether model 1 might not be better on the grounds of parsimony (yes, measurement precision did seem to matter, but maybe not enough to justify it in model inclusion).\nI did spend some time two or three years ago chasing my own tail on that one time and time again. This time I decided to go for a simpler solution: I just applied all four models across the board, retaining the “dubious” model 2, as a baseline of bad model choice."
+  },
+  {
+    "objectID": "posts/power_sensitivity_entry_3/index.html#how-the-modelling-was-done",
+    "href": "posts/power_sensitivity_entry_3/index.html#how-the-modelling-was-done",
+    "title": "Not enough power for sensitivity: 14C Power and Sensitivity (weeks 4-5?)",
+    "section": "How the modelling was done",
+    "text": "How the modelling was done\nThis plan involved a lot of models. To be specific four general model designs times however many bins times two to account for positive and negative offsets (after all, we cannot know if their impact on the data is symmetric in all cases and hence, I was reluctant to just use absolute values).\nI did the guts of the modelling with the purr and broom method from R4DS: compressed the binned data using nest() and then applied the purpose built model functions to the relevant data. Hence the whole modelling process was over in a matter of maybe a half-hour (at least after I’ve cleared off the cobwebs on how the thing worked in the first place :stuck_out_tongue:).\n\n\nCode\n### Set-up for fifty bins\nsingles_data_url <- \"https://raw.githubusercontent.com/pete-jacobsson/14C-power-sensitivity/main/simulation_results/singles_011_results.csv\" \nsingle_cals <- read_csv(url(singles_data_url))\n\n###Seperate pos from neg offsets and group things by cal curve \nsingle_cals_modelled <- single_cals %>%\n  mutate (\n    offset_pos = if_else(offset_magnitude > 0, TRUE, FALSE),\n    offset_magnitude = if_else(offset_pos, \n                               offset_magnitude, offset_magnitude * -1),\n    # Changing negs on offset magnitude to have a consistent direction at downstream visualization.\n    binned_targets = ntile(target_year, 50)\n  ) %>%\n  select(-target_year)\n\n### ntile() wouldn't return the relevant target years, so it needs to be done as its own thing.\nsingle_cals_modelled <- single_cals %>%\n  mutate(binned_targets = ntile(target_year, 50)) %>%\n  group_by(binned_targets) %>%\n  summarize( #Easy way to get years for the indiv bins, without too muchj headach\n    target_year = min(target_year)\n    ) %>%\n  inner_join(single_cals_modelled) %>% #Join the binned DF back in. No, I don't like this either!\n  group_by(offset_pos, target_year) %>%\n  nest()\n\n\n\n\nCode\n### Build the model functions\noffset_only_acc68 <- function(singles_data) {\n  glm(accuracy_68 ~ offset_magnitude, data = singles_data, \n      family = binomial)\n}\n\nsigma_only_acc68 <- function(singles_data) {\n  glm(accuracy_68 ~ measurement_error, data = singles_data, \n      family = binomial)\n}\n\noffset_sigma_acc68 <- function(singles_data) {\n  glm(accuracy_68 ~ measurement_error + offset_magnitude, data = singles_data, \n      family = binomial)\n}\n\noffset_sigma_interact_acc68 <- function(singles_data) {\n  glm(accuracy_68 ~ measurement_error + offset_magnitude + \n        measurement_error * offset_magnitude, \n      data = singles_data, family = binomial)\n}\n\n\noffset_only_acc95 <- function(singles_data) {\n  glm(accuracy_95 ~ offset_magnitude, data = singles_data, \n      family = binomial)\n}\n\nsigma_only_acc95 <- function(singles_data) {\n  glm(accuracy_95 ~ measurement_error, data = singles_data, \n      family = binomial)\n}\n\noffset_sigma_acc95 <- function(singles_data) {\n  glm(accuracy_95 ~ measurement_error + offset_magnitude, data = singles_data, \n      family = binomial)\n}\n\noffset_sigma_interact_acc95 <- function(singles_data) {\n  glm(accuracy_95 ~ measurement_error + offset_magnitude + \n        measurement_error * offset_magnitude, \n      data = singles_data, family = binomial)\n}\n\n## Note to future self: some smart pivoting earlier on could have simplified this by half :)\n\n\n\n\nCode\n### Model execution\nsingle_cals_modelled <- single_cals_modelled %>%\n  mutate(\n    offset_only_acc68 = map(data, offset_only_acc68),\n    sigma_only_acc68 = map(data, sigma_only_acc68),\n    offset_sigma_acc68 = map(data, offset_sigma_acc68),\n    offset_sigma_interact_acc68 = map(data, offset_sigma_interact_acc68),\n    offset_only_acc95 = map(data, offset_only_acc95),\n    sigma_only_acc95 = map(data, sigma_only_acc95),\n    offset_sigma_acc95 = map(data, offset_sigma_acc95),\n    offset_sigma_interact_acc95 = map(data, offset_sigma_interact_acc95)\n  )\n\n\nNext, looked at model goodness params Then at model params themselves\nThen re-did the whole things with larger bins"
+  },
+  {
+    "objectID": "posts/power_sensitivity_entry_3/index.html#model-fit-quality",
+    "href": "posts/power_sensitivity_entry_3/index.html#model-fit-quality",
+    "title": "Not enough power for sensitivity: 14C Power and Sensitivity (weeks 4-5?)",
+    "section": "Model fit quality",
+    "text": "Model fit quality\nUps and downs, big bit - 95.4% ranges"
+  },
+  {
+    "objectID": "posts/power_sensitivity_entry_3/index.html#model-results-discussion",
+    "href": "posts/power_sensitivity_entry_3/index.html#model-results-discussion",
+    "title": "Not enough power for sensitivity: 14C Power and Sensitivity (weeks 4-5?)",
+    "section": "Model results discussion",
+    "text": "Model results discussion\nBase it off the research notes\nTwist - we lost the time dimension"
+  },
+  {
+    "objectID": "posts/power_sensitivity_entry_3/index.html#try-again-bigger-bins",
+    "href": "posts/power_sensitivity_entry_3/index.html#try-again-bigger-bins",
+    "title": "Not enough power for sensitivity: 14C Power and Sensitivity (weeks 4-5?)",
+    "section": "Try again: bigger bins",
+    "text": "Try again: bigger bins"
+  },
+  {
+    "objectID": "posts/power_sensitivity_entry_3/index.html#conclusion",
+    "href": "posts/power_sensitivity_entry_3/index.html#conclusion",
+    "title": "Not enough power for sensitivity: 14C Power and Sensitivity (weeks 4-5?)",
+    "section": "Conclusion",
+    "text": "Conclusion\nNot enough power for precision. Important bit - What changes in this characterization might be the baseline (intercept). This makes sense."
   }
 ]

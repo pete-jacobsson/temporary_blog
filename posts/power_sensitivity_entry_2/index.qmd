@@ -33,14 +33,17 @@ For each of three kinds of models, I've run several different kinds of simulatio
 
 Over the next few installments we'll be focusing on whether the calibrated date estimates we simulate are accurate given different offsets and other model parameters. Before we move forward you might ask *how did the simulated radiocarbon dates get simulated in the first place?* The procedure is quite simple - you can find it outlined in code in this file [here](https://github.com/pete-jacobsson/14C-power-sensitivity/blob/main/notebook_001_singles_simulate_compare.rmd). In essence, it's all about looking at a value on the calibration curve, moving it by a bit to simulate a systematic offset, and then drawing a normally distributed random number to simulate an actual measurement. The curve itself is a marvel of statistics ([check it out](https://www.cambridge.org/core/journals/radiocarbon/article/intcal20-northern-hemisphere-radiocarbon-age-calibration-curve-055-cal-kbp/83257B63DC3AF9CFA6243F59D7503EFF)), but the bit we work with is a simple table of calendar years, alongside their expected values on the radiocarbon scale and estimate uncertainty. Once I've had the curve, I chose a systematic offset at random - after all, a large part of the project is to check how sensitive we are to such offsets. I set those offsets to between -50 and 50 ^14^C year, which is at the limit of difficult to spot lab screw-ups combined with weird atmospheric effects. After then it's just about following the recipe:
 
-1.   Get a vector of measurement errors (this is the known uncertainty around our simulated measurements) .
+1.  Get a vector of measurement errors (this is the known uncertainty around our simulated measurements) .
 
 2.  Choose a point at random one the calibration curve.
 
 3.  Check the expected ^14^C age at our chosen spot.
-4. Shift the chosen value by the offset.
-5. Draw a random number from a normal distribution with a standard deviation corresponding to the measurement error. 
-6. Paste the random numbers together and calibrate using the program [OxCal](https://c14.arch.ox.ac.uk/oxcal.html#program) (I just passed the files via the command line from R). 
+
+4.  Shift the chosen value by the offset.
+
+5.  Draw a random number from a normal distribution with a standard deviation corresponding to the measurement error.
+
+6.  Paste the random numbers together and calibrate using the program [OxCal](https://c14.arch.ox.ac.uk/oxcal.html#program) (I just passed the files via the command line from R).
 
 Once we get the calibrated results we check whether the 68.2% and 95.4% HPD areas estimated by OxCal contain the known target dates and calculate a few other things to which we might return in a few weeks.
 
