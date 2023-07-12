@@ -36,7 +36,7 @@ While I was confident *a priori* that the second model was wrong (and I think yo
 
 I did spend some time two or three years ago chasing my own tail on that one time and time again. This time I decided to go for a simpler solution: I just applied all four models across the board, retaining the "dubious" model 2, as a baseline of bad model choice.
 
-## How the modelling was done
+## How the modelling got done
 
 This plan involved a lot of models. To be specific four general model designs times however many bins times two to account for positive and negative offsets (after all, we cannot know if their impact on the data is symmetric in all cases and hence, I was reluctant to just use absolute values).
 
@@ -207,13 +207,45 @@ single_cals_log_diagnostics %>%
 
 ```
 
-When I too a look at the [AIC values](https://www.r-bloggers.com/2018/04/how-do-i-interpret-the-aic/) for the models built for different points in time, the first thing I noticed was the sigma_only model doing worse of all our models across the board (with AIC less is better). This was very, very **reassuring** - at least one expectation got fulfilled. 
+When I too a look at the [AIC values](https://www.r-bloggers.com/2018/04/how-do-i-interpret-the-aic/) for the models built for different points in time, the first thing I noticed was the sigma_only model doing worse of all our models across the board (with AIC less is better). This was very, very **reassuring** - at least one expectation got fulfilled. What was a bit more challenging was that there was no clear winner model.
 
 
+```{r}
+single_cals_log_diagnostics %>%
+  mutate(
+    offset_pos = if_else(offset_pos, "Pos offset", "Neg offset")
+  ) %>%
+  filter(str_detect(model, "95")) %>%
+  ggplot(aes(x = target_year, y = AIC)) +
+  geom_line(aes(color = model)) +
+  facet_wrap(~offset_pos) +
+  theme_bw() +
+  scale_color_manual(values = c("darkblue", "blue", "steelblue", "gray")) +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    strip.background = element_rect(
+     color="white", fill="white"
+     ),
+     text = element_text(family = "Corbel")
+    ) +
+  labs(
+    subtitle = "95.4% HPD Area models: AIC values",
+    x = "Cal yrs BP"
+    )
 
+```
+
+Looking at the 95.4% HPD ranges we have a similar story, but with a few twists. First of all, the AICs are lower than for the 68.2% HPD ranges. This makes sense: in the 68.2% case, we expect a lot more determinations to be off-target because of stochastic nature of measurement. This inbtroduces way more noise, and thus the models have a harder time estimating. In the 95.4% case, the effects of other variables should be more decisive.
+
+But taking one look at the graphs, it is clear that the real interesting bit is elsewhere. Model quality is time-dependent - the further back you go, the better the models are at explaining variation in the data. As the big difference in calibration curve structure is that of curve precision, we can expect that to have some impact on model explanatory power - perhaps by providing just a little less precise calibrations, thus further reducing stochastic effects of measurement uncertainty.
 
 
 ## Model results discussion
+
+While the model quality parameters provided some interesting insights, they did not bring us closer to our goal of choosing a model that would be good for predicting whether radiocarbon determinations subject to certain magnitudes of systematic offset will produce accurate calibrated date ranges.
+
 
 Base it off the research notes
 
