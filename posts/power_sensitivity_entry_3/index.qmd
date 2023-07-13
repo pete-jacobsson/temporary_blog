@@ -232,7 +232,7 @@ single_cals_log_diagnostics %>%
     ) +
   labs(
     subtitle = "95.4% HPD Area models: AIC values",
-    x = "Cal yrs BP"
+    x = "Target Date (Cal BP)"
     )
 
 ```
@@ -242,10 +242,85 @@ Looking at the 95.4% HPD ranges we have a similar story, but with a few twists. 
 But taking one look at the graphs, it is clear that the real interesting bit is elsewhere. Model quality is time-dependent - the further back you go, the better the models are at explaining variation in the data. As the big difference in calibration curve structure is that of curve precision, we can expect that to have some impact on model explanatory power - perhaps by providing just a little less precise calibrations, thus further reducing stochastic effects of measurement uncertainty.
 
 
-## Model results discussion
+## Model results: hints at the models, but not enough power.
 
-While the model quality parameters provided some interesting insights, they did not bring us closer to our goal of choosing a model that would be good for predicting whether radiocarbon determinations subject to certain magnitudes of systematic offset will produce accurate calibrated date ranges.
+While the model quality parameters provided some interesting insights, they did not bring us closer to our goal of choosing a model that would be good for predicting whether radiocarbon determinations subject to certain magnitudes of systematic offset will produce accurate calibrated date ranges. So the other approach was to look at what the actual model results told us. Now, one things that was clear right off the bat was that the "sigma_only" models wouldn't cut it: they did not perform well for the 68.2% HPD ranges, and also failed to take offset magnitude into the account (the thing we want to be predicting). Second, the offset only models also wouldn't do, because we know from preliminary visualizations that measurement precision does have an impact on model accuracy and the point is to quantify how much of an impact and under what conditions (not to mention, in practice, measurement precision might be the only thing that the lab teams might have some control over).
 
+This leaves to models to choose from. The one with the interaction between measurement precision and offset magnitude, and the one without the interaction term. Both have comparable AIC and BIC, so it will be the model parameters that make the difference between the two. So lets visualize those:
+
+```{r}
+single_cals_log_results %>%
+  filter(str_detect(model, "offset_sigma") & !str_detect(term, "Intercept") &
+           offset_pos) %>%
+  filter(!(target_year %in% c(7019, 7751, 9076, 11091) & 
+             str_detect(model, "95"))) %>%  ## This removes extreme values of the 95% model in the visualizations
+  mutate(
+    hpd_area = if_else(str_detect(model, "68"), "68.2% HPD", "95.4% HPD"),
+    model = str_remove(model, "_acc68|_acc95")
+  ) %>%
+  ggplot(aes(x = target_year, y = estimate)) +
+  geom_ribbon(aes(ymin = estimate - std.error * 2, 
+                  ymax = estimate + std.error * 2,
+                  fill = term), alpha = 0.2, color = "grey75") +
+  geom_line(aes(color = term), linetype = "dotted") +
+  facet_grid(cols = vars(model), rows = vars(hpd_area), scales = "free") +
+  ylim(c(-2, 2)) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    strip.background = element_rect(
+     color="black", fill="white"
+     ),
+     text = element_text(family = "Corbel")
+    ) +
+  scale_fill_manual(name = "Parameter", values = c("steelblue", "grey50", "darkblue")) +
+  scale_color_discrete(name = "Parameter") +
+  labs(
+    subtitle = "Estimates for the models without and with an interaction term",
+    x = "Target year (cal BP)",
+    caption = "Please note: visualization only contains model with positive offsets"
+  )
+```
+
+There are a few things going on here. The first is that the uncertainty around the estimates for the 95% HPD areas is much greater than the uncertainties for the models for the 68% HPD areas. This is as expected: the 95.4% HPD areas have a much higher ratio of things being "on target" and hence the logistic regression has far fewer "failures" to work with - and thus it is harder to get good precision.
+
+The second item of interest is that the model without the interaction term produces more precise estimates and that the interaction term is small and very close to zero. Without any other information, this could lead us to choose the non-interaction model as providing better predictions.
+
+However, there is a third item to consider: the sign on the error parameters under the two models. In the non-interaction models the sign tends to be positive, implying that measurements with greater measurement error estimates (i.e. the less precise ones) give us more accurate results. Point. However, this is not true - if we have a situation where there is no systematic offset from the mean of the calibration curve, then a measurement with a precision better than that of the calibration curve will provide the accurate result almost all of the time. Precision only becomes detrimental with offsets and hence the interaction term becomes important for producing a realistic model of the physical situation we are dealing with. 
+
+Having said that both models still miss one point from the EDA: they do not show any meaningful change through time. When I first saw that, I though, hey, it might just be the case that the difference lies in the baseline accuracy - that is, in the intercept parameter. Alas, I was disappointed:
+
+```{r}
+single_cals_log_results %>%
+  filter(str_detect(model, "interact") & str_detect(term, "Intercept")) %>%
+  filter(!(target_year %in% c(7019, 7751, 9076, 11091) & 
+             str_detect(model, "95"))) %>%  ## This removes extreme values of the 95% model in the visualizations
+  mutate(
+    offset_pos = if_else(offset_pos, "Pos offset", "Neg offset"),
+    model = if_else(str_detect(model, "68"), "68.2% HPD", "95.4% HPD")
+  ) %>%
+  ggplot(aes(x = target_year, y = estimate)) +
+  geom_hline(yintercept = 0) +
+  geom_ribbon(aes(ymin = estimate - std.error * 2, 
+                  ymax = estimate + std.error * 2,
+                  fill = offset_pos), alpha = 0.2, color = "grey75") +
+  geom_line(aes(color = offset_pos), linetype = "dotted") +
+  facet_grid(cols = vars(offset_pos), rows = vars(model), scales = "free") +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    strip.background = element_rect(
+     color="black", fill="white"
+     ),
+     text = element_text(family = "Corbel")
+    ) +
+  scale_fill_manual(values = c("steelblue", "darkblue")) +
+  labs(
+    subtitle = "Intercept estimates from the models containing an interaction term",
+    x = "Target Date (Cal BP)"
+  )
+```
+While the estimates did bounce up and down a bit, had any pattern been there, it was lost in the uncertainties. I lacked the power to detect the increase in accuracy through time at this resolution. So I went off and changed the bins. 
 
 Base it off the research notes
 
