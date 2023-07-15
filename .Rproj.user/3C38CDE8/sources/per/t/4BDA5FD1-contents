@@ -4,7 +4,7 @@ author: "Piotr Jacobsson"
 format: html
 ---
 
-```{r}
+```{r, include=FALSE}
 library(tidyverse)
 library(broom)
 ```
@@ -51,11 +51,16 @@ After some reflection I decided to start off with doing some model-based explora
 
 Knowing this, the next step is to explore if any of these initial observations make it through exploratory modelling. The goal is to check is different parts of the calibration curve are comparable when it comes to effects of offset magnitudes and their interactions with measurement error magnitude.
 
+
+
+
 ```{r}
 ### Load the data
-
 single_cals <- read_csv("simulation_results/singles_011_results.csv")
+```
 
+
+```{r}
 ###Seperate pos from neg offsets and group things by cal curve 
 single_cals_modelled <- single_cals %>%
   mutate (
@@ -592,3 +597,504 @@ single_cals_log_results %>%
 ```
 
 OK, suspicion confirmed. What we see here is that the models without the interaction terms are on the one hand much more precise as far as their estimates go, but on the other hand, the parameter for the measurement error does indeed flip sigm - in the interaction models its mean is negative (implies greater scatter of estimates leads to greater chance of measurement being off target), while in the non-interaction models it is positive - implying that greater measurement uncertainty leads to greater precision. Now, we know that in the case of zero offset from the mean of the calibration curve, a super-precise determination would almost always fit within the uncertainty of the calibration curve - and therefore return more accurate results. As such, due to underpinning maths, the interaction model is a better description of reality even if the interaction term itself is centered around zero and the overall parameter estimate uncertainties are far higher.
+
+
+
+Now, what all this did not give us is reproduction of the trends we've seen in the EDA histograms. What I'd be keen to do is to try again with wider bins. There will be a big ole' copy paste comin' this way, I'm afraid. 
+
+
+## Part 6 Lets check a different bin size
+The outcomes above are deeply suspicious given a clear difference that came out in the EDA - there should be some difference in something between models for data in the more recent bits of the curve and those for more distant times. To this end, lets re-do the last few hundred lines, but at just ten bins (rather than 50).]
+
+```{r}
+### Load the data
+
+single_cals <- read_csv("simulation_results/singles_011_results.csv")
+
+###Seperate pos from neg offsets and group things by cal curve 
+single_cals_binned10 <- single_cals %>%
+  mutate (
+    offset_pos = if_else(offset_magnitude > 0, TRUE, FALSE),
+    offset_magnitude = if_else(offset_pos, 
+                               offset_magnitude, offset_magnitude * -1),
+    # Changing negs on offset magnitude to have a consistent direction at downstream visualization.
+    binned_targets = ntile(target_year, 10)
+  ) %>%
+  select(-target_year)
+
+
+single_cals_binned10 <- single_cals %>%
+  mutate(binned_targets = ntile(target_year, 10)) %>%
+  group_by(binned_targets) %>%
+  summarize( #Easy way to get years for the indiv bins, without too muchj headach
+    target_year = min(target_year)
+    ) %>%
+  inner_join(single_cals_binned10) %>% #Join the binned DF back in. No, I don't like this either!
+  group_by(offset_pos, target_year) %>%
+  nest()
+
+```
+
+```{r}
+### Now use map to apply the models across the data structured into only 10 bins
+single_cals_modelled_bin10 <- single_cals_binned10 %>%
+  mutate(
+    offset_only_acc68 = map(data, offset_only_acc68),
+    sigma_only_acc68 = map(data, sigma_only_acc68),
+    offset_sigma_acc68 = map(data, offset_sigma_acc68),
+    offset_sigma_interact_acc68 = map(data, offset_sigma_interact_acc68),
+    offset_only_acc95 = map(data, offset_only_acc95),
+    sigma_only_acc95 = map(data, sigma_only_acc95),
+    offset_sigma_acc95 = map(data, offset_sigma_acc95),
+    offset_sigma_interact_acc95 = map(data, offset_sigma_interact_acc95)
+  )
+
+```
+
+```{r}
+model_names <- colnames(single_cals_modelled_bin10)[4:11]
+
+single_cals_log_results_bin10 <- data.frame()
+single_cals_log_diagnostics_bin10 <- data.frame()
+
+for (model in model_names) {
+  ## This will get a little experimental - we are trying to create a big old table!
+  ## First, we thin down the DF to the model of interest
+  temp_results <- single_cals_modelled_bin10 %>%
+    select(1, 2, all_of(model)) %>% #All of used to address deprecation
+    rename(glm_list = 3) %>% #This rename allows map to work correctly
+    mutate(
+      logistic_results = map(glm_list, tidy), # Do the map and also take note of which model
+      model = model
+    ) %>%
+    select(-glm_list) %>% # Gets rid of the actual models (necessary for saving as csv)
+    unnest(logistic_results)# Unnests results
+  
+  temp_diagnostics <- single_cals_modelled_bin10 %>%
+    select(1, 2, all_of(model)) %>%
+    rename(glm_list = 3) %>%
+    mutate(
+      logistic_diagnostics = map(glm_list, glance),
+      model = model
+    ) %>%
+    select(-glm_list) %>%
+    unnest(logistic_diagnostics)
+  
+  single_cals_log_results_bin10 <- rbind(single_cals_log_results_bin10, temp_results)
+  single_cals_log_diagnostics_bin10 <- rbind(single_cals_log_diagnostics_bin10, 
+                                         temp_diagnostics)
+
+}
+
+
+write_csv(single_cals_log_results_bin10, 
+          "model_results/single_cals_log_results_bin10.csv")
+write_csv(single_cals_log_diagnostics_bin10, 
+          "model_results/single_cals_log_diagnostics_bin10.csv")
+
+```
+
+
+Now lets re-load the results and re-plot the parameters to see if anything changes. 
+```{r}
+single_cals_log_results_bin10 <- read_csv(
+  "model_results/single_cals_log_results_bin10.csv")
+```
+
+First lets plot the intercept
+
+```{r}
+single_cals_log_results_bin10 %>%
+  filter(str_detect(model, "interact") & str_detect(term, "Intercept")) %>%
+  mutate(
+    offset_pos = if_else(offset_pos, "Pos offset", "Neg offset"),
+    model = if_else(str_detect(model, "68"), "68.2% HPD", "95.4% HPD")
+  ) %>%
+  ggplot(aes(x = target_year, y = estimate)) +
+  geom_ribbon(aes(ymin = estimate - std.error * 2, 
+                  ymax = estimate + std.error * 2,
+                  fill = model), alpha = 0.2, color = "grey75") +
+  geom_line(aes(color = model), linetype = "dotted") +
+  facet_grid(cols = vars(offset_pos), rows = vars(model), scales = "free") +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(colour = "grey80", size = 0.1),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "grey50", size = 0.5),
+    legend.position = "none",
+    strip.background = element_rect(
+     color="white", fill="white"
+     ),
+     text = element_text(family = "Corbel")
+    ) +
+  scale_fill_manual(values = c("steelblue", "darkblue")) +
+  scale_color_manual(values = c("steelblue", "darkblue"))
+```
+
+So what we can see here is that, while the estimates are still effectively similar, the intercept does seem to go up the further back we go in time. 
+
+```{r}
+single_cals_log_results_bin10 %>%
+  filter(str_detect(model, "interact") & !str_detect(term, "Intercept")) %>%
+  mutate(
+    offset_pos = if_else(offset_pos, "Pos offset", "Neg offset"),
+    model = if_else(str_detect(model, "68"), "68.2% HPD", "95.4% HPD")
+  ) %>%
+  ggplot(aes(x = target_year, y = estimate)) +
+  geom_ribbon(aes(ymin = estimate - std.error * 2, 
+                  ymax = estimate + std.error * 2,
+                  fill = term), alpha = 0.2, color = "grey75") +
+  geom_line(aes(color = term), linetype = "dotted") +
+  facet_grid(cols = vars(offset_pos), rows = vars(model)) +
+  #ylim(c(-0.25, 0.25)) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(colour = "grey80", size = 0.1),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "grey50", size = 0.5),
+    #legend.position = "none",
+    strip.background = element_rect(
+     color="white", fill="white"
+     ),
+     text = element_text(family = "Corbel")
+    ) +
+  scale_fill_manual(name = "Parameter", values = c("steelblue", "grey50", "darkblue")) +
+  scale_color_discrete(name = "Parameter")
+```
+Everything here is kinda flat. So the difference seems to live in the intercept - which makes sense. At this point variation due calibration curve can be ignored (we just used bins that would aggregate a lot of the calibration curve). This implies that the differences that we can detect with this set of simulations are not due to the fine shape of the curve, but maybe rather due to the magnitude of the unceartainty about the calibration curve estimate itself. 
+
+
+## Part 7 Exploring models that include calibration curve uncertainty
+
+To check whether this is the case, lets take a different approach and see whether uncertainty about the calibration curve may have some kind of a role to play. Now, there exists a risk that this might not be a good estimate at points such as calibration plateaux or steep sections, so we'll need to do two bits of prep:
+
+1. Join the data to calibration curve uncertainty at given target date
+2. Set chunks of the simulated data aside.
+
+```{r}
+single_cals_w_curve_uncert <- read_csv("intcal_20_interpolated.csv") %>%
+  select(CalBP, Error) %>%
+  rename(target_year = CalBP, curve_uncert = Error) %>%
+  inner_join(single_cals)
+```
+```{r}
+## Take a quick look at how curve uncertainty goes with accuracy
+
+single_cals_w_curve_uncert %>%
+  mutate(curve_uncert = round(curve_uncert)) %>%
+  group_by(curve_uncert) %>%
+  summarize(
+    `68.2% HPD` = mean(accuracy_68),
+    `95.4% HPD` = mean(accuracy_95)
+  ) %>%
+  pivot_longer(!curve_uncert, values_to = "accuracy", names_to = "hpd_area") %>%
+  ggplot(aes(x = curve_uncert, y = accuracy)) +
+  geom_bar(stat = 'identity', fill = "steelblue") +
+  facet_wrap(~hpd_area)+
+  labs(
+    x = "Calibration curve uncertainty",
+    y = "Ratio accurate"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "grey50", size = 0.5),
+    #legend.position = "none",
+    strip.background = element_rect(
+     color="white", fill="white"
+     ),
+     text = element_text(family = "Corbel")
+    )
+  
+```
+
+OK, we can see that there is a relationship between calibration curve uncertainty and accuracy of the different modelled HPD areas.
+
+Next step is to build a few models and compare their performance. Lets recall that we want to keep some of the data out, to ensure that we can use it to test the models at the end of the process. 
+To do this, I chose the following periods:
+- All data from 2400 to 2700 cal BP (a calibration plateau)
+- All data from 6500 to 6800 cal BP (a "straight" section of the curve)
+- All data from 9400 to 9600 cal BP
+
+```{r}
+###Step 1. Extract bits that we want to use for model validation
+single_cals_curve_uncert_val <- single_cals_w_curve_uncert %>%
+  filter((target_year >= 2400 & target_year <= 2700) | 
+         (target_year >= 6500 & target_year <= 6800) | 
+         (target_year >= 9400 & target_year <= 9500))
+
+single_cals_curve_uncert_mod <- single_cals_w_curve_uncert %>%
+  filter(!((target_year >= 2400 & target_year <= 2700) | 
+           (target_year >= 6500 & target_year <= 6800) | 
+           (target_year >= 9400 & target_year <= 9500)))
+
+## Now these get put into csv files for use later:
+
+write_csv(single_cals_curve_uncert_val, "single_cals_curve_uncert_val.csv")
+write_csv(single_cals_curve_uncert_mod, "single_cals_curve_uncert_mod.csv")
+```
+
+```{r}
+### Now load up the model data again, nest it and build the model functions
+single_cals_curve_uncert_mod <- read_csv("single_cals_curve_uncert_mod.csv")
+```
+
+```{r}
+##Nesting
+single_cals_curve_uncert_nest <- single_cals_curve_uncert_mod %>%
+  mutate(is_pos = if_else(offset_magnitude >= 0, TRUE, FALSE)) %>%
+  select(curve_uncert, measurement_error, offset_magnitude, accuracy_68,
+         accuracy_95, is_pos) %>%
+  group_by(is_pos) %>%
+  nest()
+```
+
+```{r}
+## Write model functions for 68% HPDs
+
+offset_curve_acc68 <- function(singles_data) {
+  glm(accuracy_68 ~ offset_magnitude + curve_uncert, data = singles_data, 
+      family = binomial)
+}
+
+sigma_curve_acc68 <- function(singles_data) {
+  glm(accuracy_68 ~ measurement_error + curve_uncert, data = singles_data, 
+      family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_acc68 <- function(singles_data) {
+  glm(accuracy_68 ~ measurement_error + offset_magnitude + curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+offset_curve_interact_acc68 <- function(singles_data) {
+  glm(accuracy_68 ~ offset_magnitude + curve_uncert + 
+        offset_magnitude * curve_uncert, 
+      data = singles_data, 
+      family = binomial)
+}
+
+sigma_curve_interact_acc68 <- function(singles_data) {
+  glm(accuracy_68 ~ measurement_error + curve_uncert +
+        measurement_error * curve_uncert, 
+      data = singles_data, 
+      family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_interact_sc_acc68 <- function(singles_data) {
+  glm(accuracy_68 ~ measurement_error + offset_magnitude + curve_uncert +
+        measurement_error * curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_interact_oc_acc68 <- function(singles_data) {
+  glm(accuracy_68 ~ measurement_error + offset_magnitude + curve_uncert +
+        offset_magnitude * curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_interact_oc_sc_acc68 <- function(singles_data) {
+  glm(accuracy_68 ~ measurement_error + offset_magnitude + curve_uncert +
+        offset_magnitude * curve_uncert + measurement_error * curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_interact_oc_sc_ocs_acc68 <- function(singles_data) {
+  glm(accuracy_68 ~ measurement_error + offset_magnitude + curve_uncert +
+        offset_magnitude * curve_uncert + measurement_error * curve_uncert +
+        offset_magnitude * measurement_error * curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+```
+
+```{r}
+## And now have those set up for the 95% HPD ranges -- yes I could have pivoted longer. I know!
+
+offset_curve_acc95 <- function(singles_data) {
+  glm(accuracy_95 ~ offset_magnitude + curve_uncert, data = singles_data, 
+      family = binomial)
+}
+
+sigma_curve_acc95 <- function(singles_data) {
+  glm(accuracy_95 ~ measurement_error + curve_uncert, data = singles_data, 
+      family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_acc95 <- function(singles_data) {
+  glm(accuracy_95 ~ measurement_error + offset_magnitude + curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+offset_curve_interact_acc95 <- function(singles_data) {
+  glm(accuracy_95 ~ offset_magnitude + curve_uncert + 
+        offset_magnitude * curve_uncert, 
+      data = singles_data, 
+      family = binomial)
+}
+
+sigma_curve_interact_acc95 <- function(singles_data) {
+  glm(accuracy_95 ~ measurement_error + curve_uncert +
+        measurement_error * curve_uncert, 
+      data = singles_data, 
+      family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_interact_sc_acc95 <- function(singles_data) {
+  glm(accuracy_95 ~ measurement_error + offset_magnitude + curve_uncert +
+        measurement_error * curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_interact_oc_acc95 <- function(singles_data) {
+  glm(accuracy_95 ~ measurement_error + offset_magnitude + curve_uncert +
+        offset_magnitude * curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_interact_oc_sc_acc95 <- function(singles_data) {
+  glm(accuracy_95 ~ measurement_error + offset_magnitude + curve_uncert +
+        offset_magnitude * curve_uncert + measurement_error * curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+offset_sigma_curve_interact_oc_sc_ocs_acc95 <- function(singles_data) {
+  glm(accuracy_95 ~ measurement_error + offset_magnitude + curve_uncert +
+        offset_magnitude * curve_uncert + measurement_error * curve_uncert +
+        offset_magnitude * measurement_error * curve_uncert, 
+      data = singles_data, family = binomial(link = 'logit'))
+}
+
+```
+
+
+```{r}
+### Now lets run the models...
+single_cals_curve_uncert_regr <- single_cals_curve_uncert_nest %>%
+  mutate(
+    offset_curve_acc68 = map(data, offset_curve_acc68),
+    offset_curve_acc95 = map(data, offset_curve_acc95),
+    offset_curve_interact_acc68 = map(data, offset_curve_interact_acc68),
+    offset_curve_interact_acc95 = map(data, offset_curve_interact_acc95),
+    offset_sigma_curve_acc68 = map(data, offset_sigma_curve_acc68),
+    offset_sigma_curve_acc95 = map(data, offset_sigma_curve_acc95),
+    offset_sigma_curve_interact_oc_acc68 = 
+      map(data, offset_sigma_curve_interact_oc_acc68),
+    offset_sigma_curve_interact_oc_acc95 = 
+      map(data, offset_sigma_curve_interact_oc_acc95),
+    offset_sigma_curve_interact_oc_sc_acc68 = 
+      map(data, offset_sigma_curve_interact_oc_sc_acc68),
+    offset_sigma_curve_interact_oc_sc_acc95 = 
+      map(data, offset_sigma_curve_interact_oc_sc_acc95),
+    offset_sigma_curve_interact_oc_sc_ocs_acc68 = 
+      map(data, offset_sigma_curve_interact_oc_sc_ocs_acc68),
+    offset_sigma_curve_interact_oc_sc_ocs_acc95 = 
+      map(data, offset_sigma_curve_interact_oc_sc_ocs_acc95)
+  )
+
+```
+
+```{r}
+### Lets re-orgnize the table to make parameter extraction easier.
+single_cals_curve_uncert_regr <- single_cals_curve_uncert_regr %>%
+  select(-data) %>%
+  pivot_longer(!is_pos, names_to = "model", values_to = "model_results")
+
+saveRDS(single_cals_curve_uncert_regr, "single_cals_curve_uncert_regr.rds")
+```
+
+```{r}
+single_cals_curve_uncert_regr <- readRDS("single_cals_curve_uncert_regr.rds")
+```
+
+
+## Part 8: Compare the models with cal curve uncertainty as a variable
+
+I'll attack this the same way as before - first getting the AIC and the BIC and comparing. I guess I'll visualize them as a bar plot going from highest to lowest.
+
+```{r}
+### Extract the diagnostics
+single_cals_curve_uncert_diag <- single_cals_curve_uncert_regr %>%
+  mutate(model_diags = map(model_results, glance)) %>%
+  select(-model_results) %>%
+  unnest(cols = c(model_diags))
+```
+
+```{r}
+### Now the visualization
+single_cals_curve_uncert_diag %>%
+  mutate(
+    offset_direction = if_else(is_pos, "Positive", "Negative"),
+    hpd_area = if_else(str_detect(model, "68"), "68.2% HPD Area", "95.4% HPD Area"),
+    model = str_remove_all(model, "_acc\\d{2}")
+  ) %>%
+  ggplot(aes(x = model, y = AIC)) +
+  geom_bar(stat = "identity", fill = "steelblue", color = "grey40") +
+  facet_grid(rows = vars(hpd_area), cols = vars(offset_direction), scales = "free") +
+  labs(
+    x = "Model",
+    subtitle = "AIC of different models that include curve uncertainty"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "grey50", size = 0.5),
+    #legend.position = "none",
+    strip.background = element_rect(
+     color="white", fill="white"
+     ),
+     text = element_text(family = "Corbel"),
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 9)
+    )
+
+```
+
+So the most complex models have the lowest AIC. In other words, those things seem to be doing something. Lets check BIC.
+
+```{r}
+single_cals_curve_uncert_diag %>%
+  mutate(
+    offset_direction = if_else(is_pos, "Positive", "Negative"),
+    hpd_area = if_else(str_detect(model, "68"), "68.2% HPD Area", "95.4% HPD Area"),
+    model = str_remove_all(model, "_acc\\d{2}")
+  ) %>%
+  ggplot(aes(x = model, y = BIC)) +
+  geom_bar(stat = "identity", fill = "steelblue", color = "grey40") +
+  facet_grid(rows = vars(hpd_area), cols = vars(offset_direction), scales = "free") +
+  labs(
+    x = "Model",
+    subtitle = "BIC of different models that include curve uncertainty"
+  ) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "grey50", size = 0.5),
+    #legend.position = "none",
+    strip.background = element_rect(
+     color="white", fill="white"
+     ),
+     text = element_text(family = "Corbel"),
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 9)
+    )
+```
+
+Same. By AIC/BIC alone, most complex model fares best. Lets review what it means
+
+```{r}
+osc_interact_params <- single_cals_curve_uncert_regr %>%
+  filter(str_detect(model, "oc_sc_ocs")) %>%
+  mutate(model_results = map(model_results, tidy)) %>%
+  unnest(cols = c(model_results))
+```
+
+
+
+
