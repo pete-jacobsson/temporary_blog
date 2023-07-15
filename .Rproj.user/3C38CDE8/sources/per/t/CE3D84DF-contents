@@ -47,7 +47,7 @@ I did spend some time two or three years ago chasing my own tail on that one tim
 
 The plan involved a lot of models. To be specific four general model designs times however many bins times two to account for positive and negative offsets (after all, we cannot know if their impact on the data is symmetric in all cases and hence, I was reluctant to just use absolute values), times two again for the 68.2% and 95.4% HPD ranges of the simulated radiocarbon dates.
 
-I did the guts of the modelling with the [purr and broom method from R4DS](https://r4ds.had.co.nz/many-models.html): compressed the binned data using nest() and then applied the purpose built model functions to the relevant data. Hence the whole modelling process was over in a matter of maybe a half-hour (at least after I've cleared off the cobwebs on how the thing worked in the first place 😋).
+I did the guts of the modelling with the [purr and broom method from R4DS](https://r4ds.had.co.nz/many-models.html): compressed the binned data using nest() and then applied the purpose built model functions to the relevant data. Hence the whole modelling process was over in a matter of maybe a half-hour, including the time to remind myself how the code was meant to work 😋.
 
 *Please note: for those interested all the wrangling code is retained in the endless code chunks below*
 
@@ -214,7 +214,7 @@ single_cals_log_diagnostics %>%
 
 ```
 
-When I too a look at the [AIC values](https://www.r-bloggers.com/2018/04/how-do-i-interpret-the-aic/) for the models built for different points in time, the first thing I noticed was the sigma_only model doing worse of all our models across the board (with AIC less is better). This was very, very **reassuring** - at least one expectation got fulfilled. What was a bit more challenging was that there was no clear winner model.
+When I too a look at the [AIC values](https://www.r-bloggers.com/2018/04/how-do-i-interpret-the-aic/) for the models built for different points in time, the first thing I noticed was the sigma_only model doing worse of all our models across the board (with AIC less is better). This was very, very **reassuring** - at least one expectation got fulfilled. What was a bit more challenging was that there was no clear winning model.
 
 ```{r}
 single_cals_log_diagnostics %>%
@@ -245,13 +245,13 @@ single_cals_log_diagnostics %>%
 
 Looking at the 95.4% HPD ranges we have a similar story, but with a few twists. First of all, the AICs are lower than for the 68.2% HPD ranges. This makes sense: in the 68.2% case, we expect a lot more determinations to be off-target because of stochastic nature of measurement. This introduces way more noise, and thus the models have a harder time estimating. In the 95.4% case, the effects of non-stochastic effects (the ones we actually model on) is more decisive.
 
-But taking one look at the graphs, it is clear that the real interesting bit is elsewhere. Model quality is time-dependent - the further back you go, the better the models are at explaining variation in the data. As the big difference in calibration curve structure at those time scales is curve precision, we can expect that it had some impact on model explanatory power - perhaps by providing just a little less precise calibrations, thus further reducing stochastic effects of measurement uncertainty, and thus improving the explanatory power of the models.
+But taking one look at the graphs, the real interesting bit is elsewhere. Model quality is time-dependent - the further back you go, the better the models are at explaining variation in the data. As the big difference in calibration curve structure at those time scales is curve precision, we can expect that it had some impact on model explanatory power - perhaps by providing just a little less precise calibrations, thus further reducing stochastic effects of measurement uncertainty, and thus improving the explanatory power of the models.
 
 ## Model results: hints at the models, but not enough power.
 
-While model quality parameters provided some interesting insights, they did not bring us closer to our goal of choosing a model that would be good for predicting whether radiocarbon determinations subject to certain magnitudes of systematic offset will produce accurate calibrated date ranges. So the other approach was to look at what the actual model results told us. Now, one things that was clear right off the bat was that the "sigma_only" models wouldn't cut it: they did not perform well for the 68.2% HPD ranges, and also failed to take offset magnitude into the account (the thing we want to be predicting). Second, the offset only models also wouldn't do, because we know from preliminary visualizations that measurement precision does have an impact on model accuracy and the point is to quantify how much of an impact and under what conditions (not to mention, in practice, measurement precision might be the only thing that the lab teams might have some control over).
+While model quality parameters provided some interesting insights, they did not bring us closer to our goal of choosing a model that would be good for predicting whether radiocarbon determinations subject to certain magnitudes of systematic offset will produce accurate calibrated date ranges. So the other approach was to look at what the actual model results told us. Now, one thing that was clear right off the bat was that the "sigma_only" models wouldn't cut it: they did not perform well for the 68.2% HPD ranges, and also failed to take offset magnitude into the account (the thing we want to be predicting). Second, the offset-only models also wouldn't do, because we know from preliminary visualizations that measurement precision does have an impact on model accuracy and the point is to quantify how much of an impact and under what conditions (not to mention, in practice, measurement precision might be the only thing that the lab teams might have some control over).
 
-This leaves to models to choose from. The one with the interaction between measurement precision and offset magnitude, and the one without the interaction term. Both have comparable AIC and BIC, so it will be the model parameters that make the difference between the two. So lets visualize those:
+This leaves two models to choose from. The one with the interaction between measurement precision and offset magnitude, and the one without the interaction term. Both have comparable AIC and BIC, so it will be the model parameters that make the difference between the two. So lets visualize those:
 
 ```{r}
 single_cals_log_results %>%
@@ -274,7 +274,7 @@ single_cals_log_results %>%
   theme(
     panel.grid.minor = element_blank(),
     strip.background = element_rect(
-     color="black", fill="white"
+     color="white", fill="white"
      ),
      text = element_text(family = "Corbel")
     ) +
@@ -315,7 +315,7 @@ single_cals_log_results %>%
   theme(
     panel.grid.minor = element_blank(),
     strip.background = element_rect(
-     color="black", fill="white"
+     color="white", fill="white"
      ),
      text = element_text(family = "Corbel")
     ) +
@@ -332,7 +332,7 @@ While the estimates did bounce up and down a bit, had any pattern been there, it
 
 Bigger bins mean more simulations per block of time, mean more power to determine whats happening in the models (at the cost of chronological resolution). With the code already written, doing the change was simple enough.
 
-```{r}
+```{r, output = FALSE}
 ###Change to 10 bins
 single_cals_modelled_bin10 <- single_cals %>%
   mutate (
@@ -426,7 +426,7 @@ single_cals_log_results_bin10 %>%
   theme(
     panel.grid.minor = element_blank(),
     strip.background = element_rect(
-     color="black", fill="white"
+     color="white", fill="white"
      ),
      text = element_text(family = "Corbel")
     ) +
@@ -437,6 +437,4 @@ single_cals_log_results_bin10 %>%
   )
 ```
 
-The bigger bins provide a little bit more clarity on what we're looking at. As far as the 68.2% HPD areas are concerned, we can see a trend towards higher intercept estimates. This suggests that we may be beginning to see the effects of the temporal trend in the data. However, this is only possible after we've sacrificed a lot of temporal resolution. In other words, to gain temporal resolution and evaluate the intercept, we would need way more simulations.
-
-Before we get there, lets first check our other approach: using the curve uncertainty as means of defining time-dependent factors. Which I shall do in the next installment.
+The bigger bins provide a little bit more clarity on what we're looking at. As far as the 68.2% HPD areas are concerned, we can see a trend towards higher intercept estimates. This suggests that we may be beginning to see the effects of the temporal trend in the data. However, this is only possible after we've sacrificed a lot of temporal resolution and we can still drive a straight horizontal line through the uncertainty measures. In other words, to gain temporal resolution and evaluate the intercept, we would need way more simulations. How many can be calculated now that we've got some estimates (and thus we can do informed power analysis). Another option would be to ditch the bins and take a time series approach, hoping that this would give us a better handle on the trend. But before going into either of these options lets check out what happens if we take the other approach that came out of EDA: using the curve uncertainty as means of defining time-dependent factors. Which I shall do in the next installment.
