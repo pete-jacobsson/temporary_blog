@@ -13,6 +13,9 @@ format:
 
 ```{r include=FALSE}
 library(tidyverse)
+library(jtools)
+library(patchwork)
+library(broom)
 ```
 
 
@@ -84,11 +87,18 @@ predict_model_results_osc <- function(offset_dir, hpd_area, model_name,
   predicted_results
 }
 
+# predict_model_results_osc(offset_dir = "pos", hpd_area = "68",
+#                           model_name = "offset_curve_interact",
+#                           variable = "offset_magnitude", 
+#                           variable_range = seq(0, 50))
+
+
 plot_simulation_results_osc <- function(range_to_plot, hpd_area, variable,
                                         rounding, xlab) {
   ##This function plots the simulation results for the purposes of the results graphing
   
-  single_cals_curve_uncert_mod <- read_csv("single_cals_w_curve_uncert.csv") %>%
+  single_cals_curve_uncert_mod <- read_csv(
+    url("https://raw.githubusercontent.com/pete-jacobsson/14C-power-sensitivity/main/single_cals_w_curve_uncert.csv")) %>%
   mutate(sigma_curve_uncert = sqrt((measurement_error^2) + (curve_uncert^2)))
   
   single_cals_curve_uncert_mod %>%
@@ -121,6 +131,11 @@ plot_simulation_results_osc <- function(range_to_plot, hpd_area, variable,
   
 }
 
+# plot_simulation_results_osc(range_to_plot = c(0, 50), hpd_area = "accuracy_68",
+#                             variable = "offset_magnitude", rounding = 2,
+#                             xlab = "Offset magnitude")
+
+
 plot_model_predictions_ocs <- function(offset_dir, hpd_area, model_name, variable, 
                                        range, rounding, xlab) {
   ## This function wraps predict_model_results and plot_simulation_results and plots prediction over simulation.
@@ -145,6 +160,12 @@ plot_model_predictions_ocs <- function(offset_dir, hpd_area, model_name, variabl
   
   plot
 }
+
+# plot_model_predictions_ocs(offset_dir = "pos", hpd_area = "accuracy_68",
+#                            model_name = "act_oc_sc_acc",
+#                            variable = "offset_magnitude",
+#                            range = c(0, 50), rounding = 2.5,
+#                            xlab = "Offset magnitude")
 ```
 
 
@@ -152,23 +173,52 @@ plot_model_predictions_ocs <- function(offset_dir, hpd_area, model_name, variabl
 Quite cheerful I proceeded to plot the results. They came back as pictured on the associated pictures: not matching the model very well. In particular the measurement error estimates seemed to be very far off what they'd need to be to match the data. 
 
 ```{r}
-####HERE Illustrations
+plot_model_predictions_ocs(offset_dir = "neg", hpd_area = "accuracy_95",
+                           variable = "measurement_error",
+                           model_name = "os_cs",
+                           range = c(8, 32), rounding = 2,
+                           xlab = "Measurement error") + 
+  labs(
+    title = "Ratio accurate determinations in simulated sample and the fitted regression line",
+    caption = "Define: 'Model does not match the data'"
+  )
+
+
 ```
 
 
 ## If in doubt: combine!
 At this stage I started suspecting that this has something to do with how curve uncertainty estimate affects the model. Long and short, it looked like the models built using both curve uncertainty data and the measurement error data might have been confounding the two effects. I decided to address this by a trick: combining the measurement error and the curve uncertainty into a single parameter. While not a pretty solution, in practice, for most samples, we would have some expectation of age prior to measurement and thus we could make a reasonable guess on the magnitude of curve uncertainty (indeed better than the guess as to what measurement precision the instruments would return). With this data in tow there would thus be the possibility of predicting model accuracy. 
 
-This left me with two possible models to take to STAN: one with an interaction between the two parameters, one without such interaction. Both models had bearable AIC/BIC values compared to their counterparts. 
+This left me with two possible models to take to STAN: one with an interaction between the two parameters, one without such interaction.
+
+The intercepts were comparable within the models, though the model with interactions was giving meaningless predictions if we calculated the values at zero offset and uncertainty (basically plugging the intercept only into the logistic equation). To round it all off, the interaction model was predicting too little effect of measurement uncertainty and thus the non-interaction one was the one that got chosen to go to the next round. 
 
 ```{r}
-####HERE Figure - compare AIC/BIC of curve_offset models!
-```
 
-The intercepts were also comparable within the models, though the model with interactions was giving meaningless predictions if we calculated the values at zero offset and uncertainty (basically plugging the intercept only into the logistic equation). To round it all off, the interaction model was predicting too little effect of measurement uncertainty and thus the non-interaction one was the one that got chosen to go to the next round. 
+offset_curve_sigma_comb_interact_params <- readRDS("single_cals_curve_uncert_regr.rds") |>
+  filter(str_detect(model, "comb_inter")) |>
+  mutate(model_results = map(model_results, tidy)) |>
+  unnest(cols = c(model_results))
 
-```{r}
-###HERE model results
+
+
+
+knitr::kable(
+  offset_curve_sigma_comb_interact_params |>
+    filter(str_detect(term, "Interce")) |>
+  select(is_pos, model, estimate, std.error) |>
+  mutate(
+    acc_zero = 1 / (1 + exp(- estimate)),
+    acc_zero_min = 1 / (1 + exp(- (estimate - 2 * std.error))),
+    acc_zero_max = 1 / (1 + exp(- (estimate + 2 * std.error))),
+    ) |>
+    mutate(
+      `Offset direction` = if_else(is_pos, "Positive", "Negative"),
+      Model = str_extract(model, "acc\\d{2}")
+    ) |>
+    select(`Offset direction`, Model, acc_zero, acc_zero_min, acc_zero_max)
+)
 ```
 
 
