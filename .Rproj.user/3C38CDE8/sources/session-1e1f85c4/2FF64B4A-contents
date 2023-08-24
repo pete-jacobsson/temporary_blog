@@ -192,21 +192,18 @@ At this stage I started suspecting that this has something to do with how curve 
 
 This left me with two possible models to take to STAN: one with an interaction between the two parameters, one without such interaction.
 
-The intercepts were comparable within the models, though the model with interactions was giving meaningless predictions if we calculated the values at zero offset and uncertainty (basically plugging the intercept only into the logistic equation). To round it all off, the interaction model was predicting too little effect of measurement uncertainty and thus the non-interaction one was the one that got chosen to go to the next round. 
+The intercepts were comparable within the models, though the model with interactions was giving meaningless predictions if we calculated the values at zero offset and uncertainty (basically plugging the intercept only into the logistic equation).
 
 ```{r}
 
 offset_curve_sigma_comb_interact_params <- readRDS("single_cals_curve_uncert_regr.rds") |>
-  filter(str_detect(model, "comb_inter")) |>
+  filter(str_detect(model, "comb")) |>
   mutate(model_results = map(model_results, tidy)) |>
   unnest(cols = c(model_results))
 
 
-
-
-knitr::kable(
-  offset_curve_sigma_comb_interact_params |>
-    filter(str_detect(term, "Interce")) |>
+offset_curve_sigma_comb_interact_params |>
+  filter(str_detect(term, "Interce")) |>
   select(is_pos, model, estimate, std.error) |>
   mutate(
     acc_zero = 1 / (1 + exp(- estimate)),
@@ -214,12 +211,37 @@ knitr::kable(
     acc_zero_max = 1 / (1 + exp(- (estimate + 2 * std.error))),
     ) |>
     mutate(
-      `Offset direction` = if_else(is_pos, "Positive", "Negative"),
-      Model = str_extract(model, "acc\\d{2}")
+      offset_dir = if_else(is_pos, "Positive", "Negative"),
+      hpd_area = str_extract(model, "\\d{2}"),
+      hpd_area = str_c(hpd_area, "% HPD Area"),
+      model = if_else(str_detect(model, "intera"), "Interaction", "No interaction")
     ) |>
-    select(`Offset direction`, Model, acc_zero, acc_zero_min, acc_zero_max)
-)
-```
+    select(offset_dir, model, hpd_area, acc_zero, 
+           acc_zero_min, acc_zero_max) |>
+  ggplot(aes(x = model, y = acc_zero)) +
+  geom_point() +
+  geom_linerange(aes(ymax = acc_zero_max, ymin = acc_zero_min)) +
+  facet_grid(rows = vars(hpd_area), cols = vars(offset_dir)) +
+  ylim(c(0, 1)) +
+  theme_bw() +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "grey50", size = 0.5),
+    #legend.position = "none",
+    strip.background = element_rect(
+     color="white", fill="white"
+     ),
+     text = element_text(family = "Corbel"),
+    axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 9)
+    ) +
+  labs(
+    x = "",
+    y = "Ratio accurate",
+    title = "Predicted ratio of accurate observations under no offset and no error"
+  )
 
+```
+While this situation
 
 Which we'll cover in the next installment... with three weeks of an intensive French course ahead I've got no idea when the next installment will be though!
