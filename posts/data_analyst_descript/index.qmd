@@ -1,7 +1,7 @@
 ---
 title: "What's in a generic data analyst job description?"
 author: "Pete"
-date: "2023-08-25"
+date: "2023-09-25"
 categories: [Data Analytics, Project Log]
 execute:
   message: false
@@ -12,4 +12,24 @@ format:
 ---
 
 ## Why do this project?
-As some of you may know, I am looking for a job, with something in data analytics being one of the possibilities. Now, there is a lot of advice out there when it comes to job hunting, but most of it is focused on dealing with the 
+As some of you may know, I am looking for a job, with something in data analytics being one of the possibilities. Now, there is a lot of advice out there when it comes to job hunting and the big one is tailoring your CV to whatever job you're applying to. Indeed, with the advent of easy-to-access LLMs there are now tools to automate the process ([Teal comes to mind](https://www.tealhq.com/)). However, there is also another big lot of advice and that is that a lot of jobs never make it to the job board and that it is often best to work with a recruiter. Which also includes a CV, but this time with no hints as to how to tailor it.
+
+So I thought, how about working out what the average, generic data analyst job description looks like - what are the skills and tasks that come up most often. Given that I was thinking of going for a data analyst role, it was only fitting to approach the problem using data. Here is what I found in the process.
+
+## How to get the data? (aka the method section)
+From the get go the big problem was how to get the data. Now in principle I could sit down in front of Indeed, Glassdoor, or some other Linked In and start going through adverts for where I live - which happens to be western Switzerland. Now, this approach has a couple big drawbacks, the biggest being that it is slow. The second biggest being that it also introduces a lot of subjectivity. A slight variation would have been to paste the job descriptions into a file and then try to process them somehow - still slow and now I have a massive NLP exercise to deal with. Instead of doing all those things, I approached the problem from a more technical angle (consult the figure for the TLDR version). 
+
+The key was to get API access to job descriptions. There are a few services out there that offer that, however quite a few of them are paywalled. Still, where there is will to spend more than five minutes googling there is hope and thus I came across the [Adzuna](https://www.adzuna.ch/) website. After a quick API refresher I was able to get a whole collection of recent job descriptions... except the API never had any job descriptions, only links to posts and snippets of the first however many words or symbols of a description. At that stage I quit for the day.
+
+Coming back the next day, I approached the issue from a different angle. While the API didn't give full job descriptions it did supply links to individual pages. That's how the new plan got hatched: web scraping. After a few more refreshers (and a little while digging through Adzuna's CSS selectors) I managed to get the scraping function to work. There was one hiccup in that some of the links were for external sites, but this was easy to determine and filter away from the links themselves. 
+
+Thus the last remaining task was to deal with extracting the information from job descriptions. Now, a year earlier that would have been messy to say the least. However, since then, accessible LLMs became a thing. Coming of the back of [Isa Fulford's and Andrew Ng's course](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/) I used GPT 3.5 Turbo to do the work for me. The prompt of course requires some iterating, but the summarizing capacity of the LLM meant that the job descriptions could be iterated over fast. The workflow as a whole took a couple hours to execute and yielded 159 job descriptions. In principle the process could be faster, however I made sure to include multiple "sleeps" in the process - after all Open AI API can only be called so many times per minute and I also wanted to limit the impact of the webscrape on Adzuna to something akin to a well-caffeinated human clicking too much. With the data in hand visualization was all that was left.
+
+I used R throughout, with a smattering of Python (wanted to check how R Studio's Python side would behave). All code is attached at the end of the post and, if you're interested, the actual work log can be found on my Github (apologies if some words might have evaded the profanity removal process prior to publishing).
+
+## Results
+
+As you can see from the graph below there are some expected and some less-expected outcomes from the exercise.
+
+
+## Code
