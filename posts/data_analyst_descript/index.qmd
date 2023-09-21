@@ -23,13 +23,20 @@ The key was to get API access to job descriptions. There are a few services out 
 
 Coming back the next day, I approached the issue from a different angle. While the API didn't give full job descriptions it did supply links to individual pages. That's how the new plan got hatched: web scraping. After a few more refreshers (and a little while digging through Adzuna's CSS selectors) I managed to get the scraping function to work. There was one hiccup in that some of the links were for external sites, but this was easy to determine and filter away from the links themselves. 
 
-Thus the last remaining task was to deal with extracting the information from job descriptions. Now, a year earlier that would have been messy to say the least. However, since then, accessible LLMs became a thing. Coming of the back of [Isa Fulford's and Andrew Ng's course](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/) I used GPT 3.5 Turbo to do the work for me. The prompt of course requires some iterating, but the summarizing capacity of the LLM meant that the job descriptions could be iterated over fast. The workflow as a whole took a couple hours to execute and yielded 159 job descriptions. In principle the process could be faster, however I made sure to include multiple "sleeps" in the process - after all Open AI API can only be called so many times per minute and I also wanted to limit the impact of the webscrape on Adzuna to something akin to a well-caffeinated human clicking too much. With the data in hand visualization was all that was left.
+Thus the last remaining task was to deal with extracting the information from job descriptions. Now, a year earlier that would have been messy to say the least. However, since then, accessible LLMs became a thing. Coming of the back of [Isa Fulford's and Andrew Ng's course](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/) I used GPT 3.5 Turbo to do the work for me. The prompt of course requires some iterating, but the summarizing capacity of the LLM meant that the job descriptions could be iterated over fast. The workflow as a whole took a couple hours to execute and yielded 159 job descriptions posted in early July 2023. In principle the process could be faster, however I made sure to include multiple "sleeps" in the process - after all Open AI API can only be called so many times per minute and I also wanted to limit the impact of the webscrape on Adzuna to something akin to a well-caffeinated human clicking too much. With the data in hand visualization was all that was left.
 
 I used R throughout, with a smattering of Python (wanted to check how R Studio's Python side would behave). All code is attached at the end of the post and, if you're interested, the actual work log can be found on my Github (apologies if some words might have evaded the profanity removal process prior to publishing).
 
 ## Results
 
 As you can see from the graph below there are some expected and some less-expected outcomes from the exercise.
+
+```{r}
+##Figure code goead here
+```
+
+
+Let's start with the obvious and the expected. First off the bat, in the sample of 159 job descriptions, keywords relating to core soft skills were most common, with GPT detecting both interpersonal skills and communication skills in over eighty descriptions each. These are followed by business awareness. Python and knwoledge of SQL come up as the two core hard skills and languages follow an expected pattern, with English in the fourth position, and German and French trailing. German and French are to be expected, given that I was scraping a Swiss job board. Last, Excel is present as the third most in demand tech skill. While this may come across as a surprise to some, in the core data analytics space this can be expected - after all, there is Excel and then there is Excel with all the added VBA bells and whistles and the tool still sees heavy usage (there is a reason why there are R packages dedicated to generating Excel files).
 
 
 ## Code
