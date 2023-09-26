@@ -11,6 +11,11 @@ format:
     code-overflow: scroll
 ---
 
+
+```{r, include = FALSE}
+library(tidyverse)
+```
+
 ## Why do this project?
 As some of you may know, I am looking for a job, with something in data analytics being one of the possibilities. Now, there is a lot of advice out there when it comes to job hunting and the big one is tailoring your CV to whatever job you're applying to. Indeed, with the advent of easy-to-access LLMs there are now tools to automate the process ([Teal comes to mind](https://www.tealhq.com/)). However, there is also another big lot of advice and that is that a lot of jobs never make it to the job board and that it is often best to work with a recruiter. Which also includes a CV, but this time with no hints as to how to tailor it.
 
@@ -23,7 +28,7 @@ The key was to get API access to job descriptions. There are a few services out 
 
 Coming back the next day, I approached the issue from a different angle. While the API didn't give full job descriptions it did supply links to individual pages. That's how the new plan got hatched: web scraping. After a few more refreshers (and a little while digging through Adzuna's CSS selectors) I managed to get the scraping function to work. There was one hiccup in that some of the links were for external sites, but this was easy to determine and filter away from the links themselves. 
 
-Thus the last remaining task was to deal with extracting the information from job descriptions. Now, a year earlier that would have been messy to say the least. However, since then, accessible LLMs became a thing. Coming of the back of [Isa Fulford's and Andrew Ng's course](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/) I used GPT 3.5 Turbo to do the work for me. The prompt of course requires some iterating, but the summarizing capacity of the LLM meant that the job descriptions could be iterated over fast. The workflow as a whole took a couple hours to execute and yielded 159 job descriptions posted in early July 2023. In principle the process could be faster, however I made sure to include multiple "sleeps" in the process - after all Open AI API can only be called so many times per minute and I also wanted to limit the impact of the webscrape on Adzuna to something akin to a well-caffeinated human clicking too much. With the data in hand visualization was all that was left.
+Thus the last remaining task was to deal with extracting the information from job descriptions. Now, a year earlier that would have been messy to say the least. However, since then, accessible LLMs became a thing. Coming off the back of [Isa Fulford's and Andrew Ng's course](https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/) I used GPT 3.5 Turbo to do the work for me. The prompt of course requires some iterating, but the summarizing capacity of the LLM meant that the job descriptions could be iterated over fast. The workflow as a whole took a couple hours to execute and yielded 159 job descriptions posted in early July 2023. In principle the process could be faster, however I made sure to include multiple "sleeps" in the process - after all Open AI API can only be called so many times per minute and I also wanted to limit the impact of the webscrape on Adzuna to something akin to a well-caffeinated human clicking too much. With the data in hand visualization was all that was left.
 
 I used R throughout, with a smattering of Python (wanted to check how R Studio's Python side would behave). All code is attached at the end of the post and, if you're interested, the actual work log can be found on my Github (apologies if some words might have evaded the profanity removal process prior to publishing).
 
@@ -31,8 +36,33 @@ I used R throughout, with a smattering of Python (wanted to check how R Studio's
 
 As you can see from the graph below there are some expected and some less-expected outcomes from the exercise.
 
-```{r}
-##Figure code goead here
+```{r, warning=FALSE, message=FALSE}
+skills_df_url <- "https://raw.githubusercontent.com/pete-jacobsson/what_makes_a_data_analyst/main/skills_df.csv" 
+skills_df <- read_csv(url(skills_df_url))
+
+skills_df |>
+  head(28) |>
+  mutate(
+    term = as_factor(term)
+  ) |>
+  filter(term != "Analytics") |> ### This category is largest - which makes sense, but we know it from the job description :)
+  ggplot(aes(x = fct_infreq(term), y = count)) +
+  geom_bar(stat = 'identity', fill = "steelblue", color = "grey20") +
+  coord_flip() +
+  scale_x_discrete(limits = rev) +
+  theme_bw() +
+  theme(
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    axis.line = element_line(colour = "grey50", size = 0.5),
+    text = element_text(family = "Corbel")#,
+    #axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size = 9)
+    ) +
+  labs(
+    x = "GPT-detected keyword",
+    y = "Count"
+  )
 ```
 
 
@@ -50,3 +80,15 @@ The other item that surprised me was the continuing dominance of scripting langu
 
 
 ## Code
+
+```{r, eval=FALSE}
+## Reproducing results will require the following libraries:
+library(httr)
+library(tidyverse)
+library(jsonlite)
+library(rvest)
+library(reticulate)
+```
+
+
+
