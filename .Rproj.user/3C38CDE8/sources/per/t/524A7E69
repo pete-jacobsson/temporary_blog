@@ -1,14 +1,14 @@
 {
-    "id": "84066D4F",
-    "path": "~/Documents/GitHub/temporary_blog/posts/data_analyst_descript/index.qmd",
-    "project_path": "posts/data_analyst_descript/index.qmd",
+    "id": "524A7E69",
+    "path": "~/Documents/GitHub/temporary_blog/posts/power_sensitivity_entry_3/index.qmd",
+    "project_path": "posts/power_sensitivity_entry_3/index.qmd",
     "type": "quarto_markdown",
-    "hash": "0",
+    "hash": "2936543414",
     "contents": "",
     "dirty": false,
-    "created": 1695126324112.0,
+    "created": 1692714261770.0,
     "source_on_save": false,
-    "relative_order": 5,
+    "relative_order": 4,
     "properties": {
         "rmdVisualMode": "false",
         "rmdVisualWrapConfigured": "true",
@@ -16,16 +16,17 @@
         "Source": "Source",
         "docOutlineVisible": "1",
         "rmdVisualCollapsedChunks": "",
-        "cursorPosition": "30,223",
-        "scrollLine": "20",
-        "rmdVisualModeLocation": "2:0"
+        "cursorPosition": "57,0",
+        "scrollLine": "0",
+        "rmdVisualModeLocation": "281:0",
+        "docOutlineSize": "110"
     },
     "folds": "",
-    "lastKnownWriteTime": 1695739310,
+    "lastKnownWriteTime": 1695126802,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1695739310847,
+    "last_content_update": 1695126802286,
     "read_only": false,
     "read_only_alternatives": []
 }
