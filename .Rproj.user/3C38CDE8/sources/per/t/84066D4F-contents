@@ -1,7 +1,7 @@
 ---
 title: "What's in a generic data analyst job description?"
 author: "Pete"
-date: "2023-09-25"
+date: "2023-10-15"
 categories: [Data Analytics, Project Log]
 execute:
   message: false
@@ -17,9 +17,10 @@ library(tidyverse)
 ```
 
 ## Why do this project?
-As some of you may know, I am looking for a job, with something in data analytics being one of the possibilities. Now, there is a lot of advice out there when it comes to job hunting and the big one is tailoring your CV to whatever job you're applying to. Indeed, with the advent of easy-to-access LLMs there are now tools to automate the process ([Teal comes to mind](https://www.tealhq.com/)). However, there is also another big lot of advice and that is that a lot of jobs never make it to the job board and that it is often best to work with a recruiter. Which also includes a CV, but this time with no hints as to how to tailor it.
+As some of you may know, I am looking for a job, with something in data analytics being one of the possibilities. Now, there is a lot of advice out there when it comes to job hunting and the big one is tailoring your CV to whatever job you're applying to. Indeed, with the advent of easy-to-access LLMs there are now tools to automate the process ([Teal comes to mind](https://www.tealhq.com/)). However, there is also another big lot of advice and that is that a lot of jobs never make it to the job board and that it is often best to work with a recruiter. Or do speculative applications. Or have your file ready whenever you go to the grocery store in case you meet someone in the queue. All of these options require a CV, but no one provides the hints on how to tailor it.
 
-So I thought, how about working out what the average, generic data analyst job description looks like - what are the skills and tasks that come up most often. Given that I was thinking of going for a data analyst role, it was only fitting to approach the problem using data. Here is what I found in the process.
+Around the same time I was also thinking that it might be fun to do a small project that would build in calls to an LLM into a data analytics workflow. So I thought, how about working out what the average, generic data analyst job description looks like - what are the skills and tasks that come up most often. Given that I was thinking of going for a data analyst role, it was only fitting to approach the problem using data. Two years ago the key challenge would be doing all the natural language processing necessary to get the data out of the job descriptions. However today, with accessible LLMs, this is no longer an issue. Full of energy, I sat down to do the job. Here is what happened next.
+
 
 ## How to get the data? (aka the method section)
 From the get go the big problem was how to get the data. Now in principle I could sit down in front of Indeed, Glassdoor, or some other Linked In and start going through adverts for where I live - which happens to be western Switzerland. Now, this approach has a couple big drawbacks, the biggest being that it is slow. The second biggest being that it also introduces a lot of subjectivity. A slight variation would have been to paste the job descriptions into a file and then try to process them somehow - still slow and now I have a massive NLP exercise to deal with. Instead of doing all those things, I approached the problem from a more technical angle (consult the figure for the TLDR version). 
@@ -77,6 +78,10 @@ The other item that surprised me was the continuing dominance of scripting langu
 
 
 ## Conclusions
+
+This post summarized a rough-and-ready project aimed at summarizing the typical requirements for a Data Analyst. To this end, it has relied on a combination of API calls, web scraping and GPT 3.5 Turbo to organize the workflow. The conclusions confirmed much of what we know from LinkedIn (such as the high value of demonstrated soft skills), as well as a few surprises ("hard" technical skills, such as coding, continue to eclipse the use of BI tools). Of course, in interpreting these results we need to be mindful of the sample limitations: I used a single job board, with postings from only two weeks in the summer. Nevertheless, at least for me, the outcomes provided some food for thought, as well as an opportunity to experiment on building an LLM into a data analytics workflow. Which was the main prupose of this little project.
+
+I hope you enjoyed this post, and let me know if you'd like to see more similar content in the future!
 
 
 
